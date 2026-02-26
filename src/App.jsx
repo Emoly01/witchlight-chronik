@@ -989,4 +989,5 @@ export default function WitchlightChronik() {
         </div>
       )}
     </div>
-  )
+  );
+}
