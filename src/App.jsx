@@ -134,6 +134,16 @@ const NPC_STATUSES = [
   { id: "unbekannt",label: "Unbekannt",color: "#c0b8c8" },
 ];
 
+const NPC_LOCATIONS = [
+  { id: "all",       label: "Alle",                  icon: "✦" },
+  { id: "karnival",  label: "Witchlight Karnival",   icon: "🎪" },
+  { id: "hither",    label: "Hither",                icon: "🌿" },
+  { id: "tither",    label: "Tither",                icon: "🍄" },
+  { id: "yon",       label: "Yon",                   icon: "🌙" },
+  { id: "palast",    label: "Palast der Herzensbegierde", icon: "🏰" },
+  { id: "unbekannt", label: "Unbekannt",              icon: "❓" },
+];
+
 function qColor(id) { return QUEST_STATUSES.find(s => s.id === id)?.color || "#c0b8c8"; }
 function npcColor(id) { return NPC_STATUSES.find(s => s.id === id)?.color || "#c0b8c8"; }
 
@@ -160,6 +170,8 @@ export default function WitchlightChronik() {
 
   const [expanded, setExpanded] = useState({});
   const [expandedNpc, setExpandedNpc] = useState(null);
+  const [npcLocation, setNpcLocation] = useState("all");
+  const [npcSearch, setNpcSearch] = useState("");
   const [expandedFund, setExpandedFund] = useState(null);
 
   // ── GM forms ──
@@ -167,7 +179,7 @@ export default function WitchlightChronik() {
   const [editingRecap, setEditingRecap] = useState(null);
   const [snippetForm, setSnippetForm] = useState({ title: "", text: "" });
   const [showSnippetForm, setShowSnippetForm] = useState(false);
-  const [npcForm, setNpcForm] = useState({ name: "", faction: "", description: "", imageUrl: "", status: "lebendig", notes: "" });
+  const [npcForm, setNpcForm] = useState({ name: "", faction: "", description: "", imageUrl: "", status: "lebendig", location: "unbekannt", notes: "" });
   const [questForm, setQuestForm] = useState({ title: "", description: "", status: "offen" });
   const [editingNpc, setEditingNpc] = useState(null);
   const [editingQuest, setEditingQuest] = useState(null);
@@ -296,7 +308,7 @@ export default function WitchlightChronik() {
     if (!npcForm.name.trim()) return;
     if (editingNpc) { un(npcs.map(n => n.id === editingNpc ? { ...n, ...npcForm } : n)); }
     else { un([{ id: makeId(), ...npcForm, impressions: [] }, ...npcs]); }
-    setNpcForm({ name: "", faction: "", description: "", imageUrl: "", status: "lebendig", notes: "" });
+    setNpcForm({ name: "", faction: "", description: "", imageUrl: "", status: "lebendig", location: "unbekannt", notes: "" });
     setEditingNpc(null); setShowNpcForm(false);
   };
 
@@ -428,8 +440,8 @@ export default function WitchlightChronik() {
         .npc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; }
         .npc-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 10px rgba(160,120,200,0.08); }
         .npc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(160,120,200,0.15); }
-        .npc-img { width: 100%; aspect-ratio: 1; object-fit: cover; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #d0c0e0; }
-        .npc-img img { width: 100%; height: 100%; object-fit: cover; }
+        .npc-img { width: 100%; height: 180px; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #d0c0e0; overflow: hidden; }
+        .npc-img img { width: 100%; height: 100%; object-fit: contain; object-position: center top; }
         .npc-card-body { padding: 0.6rem 0.7rem; }
         .npc-card-name { font-family: 'Cinzel', serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; color: #3a1858; margin: 0 0 0.15rem; }
         .npc-card-faction { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.72rem; color: #6a4888; margin: 0; }
@@ -519,6 +531,18 @@ export default function WitchlightChronik() {
         .narrative em, .narrative i { font-style: italic; color: #7858a0; }
 
         /* ── GM Plan ── */
+        /* ── NPC location tabs + search ── */
+        .npc-loc-tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin-bottom: 0.8rem; background: rgba(248,240,252,0.6); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.2rem; flex-wrap: nowrap; }
+        .npc-loc-tabs::-webkit-scrollbar { display: none; }
+        .npc-loc-tab { font-family: 'Cinzel', serif; font-size: 0.42rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.4rem 0.7rem; background: none; border: none; cursor: pointer; color: #8a6aaa; white-space: nowrap; border-radius: 7px; transition: all 0.15s; display: flex; align-items: center; gap: 0.25rem; }
+        .npc-loc-tab.active { background: rgba(255,255,255,0.95); color: #5a3890; box-shadow: 0 1px 6px rgba(160,120,200,0.15); }
+        .npc-loc-tab:hover:not(.active) { color: #5a3890; background: rgba(255,255,255,0.5); }
+        .npc-search-wrap { position: relative; margin-bottom: 0.8rem; }
+        .npc-search-input { width: 100%; background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; border-radius: 20px; padding: 0.5rem 0.8rem 0.5rem 2rem; font-family: 'IM Fell English', serif; font-size: 0.9rem; color: #3a1858; outline: none; transition: border-color 0.15s; }
+        .npc-search-input:focus { border-color: #c094c8; }
+        .npc-search-input::placeholder { color: #c0a8d0; font-style: italic; }
+        .npc-search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: #c0a8d0; font-size: 0.85rem; pointer-events: none; }
+
         .gm-note-card { background: rgba(255,248,255,0.9); border: 1px solid #e0d0f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); }
         .gm-note-card:hover { box-shadow: 0 4px 18px rgba(160,120,200,0.12); }
         .gm-cat-badge { font-family: 'Cinzel', serif; font-size: 0.38rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; display: inline-flex; align-items: center; gap: 0.2rem; }
@@ -907,9 +931,14 @@ export default function WitchlightChronik() {
                     {NPC_STATUSES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
                 </div>
-                <div className="f-group"><label className="f-label">GM-Notizen (privat)</label>
-                  <input className="f-input" value={npcForm.notes} onChange={e => setNpcForm(f=>({...f,notes:e.target.value}))} placeholder="Was die Spieler nicht wissen..." /></div>
+                <div className="f-group"><label className="f-label">Ort</label>
+                  <select className="f-select" value={npcForm.location||"unbekannt"} onChange={e => setNpcForm(f=>({...f,location:e.target.value}))}>
+                    {NPC_LOCATIONS.filter(l => l.id !== "all").map(l => <option key={l.id} value={l.id}>{l.icon} {l.label}</option>)}
+                  </select>
+                </div>
               </div>
+              <div className="f-group"><label className="f-label">GM-Notizen (privat)</label>
+                <input className="f-input" value={npcForm.notes} onChange={e => setNpcForm(f=>({...f,notes:e.target.value}))} placeholder="Was die Spieler nicht wissen..." /></div>
               <div className="f-actions">
                 <button className="btn-primary" onClick={saveNpc} disabled={!npcForm.name.trim()}>Speichern</button>
                 <button className="btn-secondary" onClick={() => { setShowNpcForm(false); setEditingNpc(null); }}>Abbrechen</button>
@@ -929,7 +958,7 @@ export default function WitchlightChronik() {
                   </div>
                   <div style={{display:"flex",gap:"0.4rem",alignItems:"center"}}>
                     <span className="tag" style={{color:npcColor(n.status),borderColor:npcColor(n.status)}}>{NPC_STATUSES.find(s=>s.id===n.status)?.label}</span>
-                    {gmMode && <button className="btn-secondary" style={{padding:"0.2rem 0.5rem",fontSize:"0.45rem"}} onClick={() => { setNpcForm({name:n.name,faction:n.faction||"",description:n.description||"",imageUrl:n.imageUrl||"",status:n.status,notes:n.notes||""}); setEditingNpc(n.id); setShowNpcForm(true); setExpandedNpc(null); }}>✎ Bearbeiten</button>}
+                    {gmMode && <button className="btn-secondary" style={{padding:"0.2rem 0.5rem",fontSize:"0.45rem"}} onClick={() => { setNpcForm({name:n.name,faction:n.faction||"",description:n.description||"",imageUrl:n.imageUrl||"",status:n.status,location:n.location||"unbekannt",notes:n.notes||""}); setEditingNpc(n.id); setShowNpcForm(true); setExpandedNpc(null); }}>✎ Bearbeiten</button>}
                     <button className="btn-danger" onClick={() => setExpandedNpc(null)}>✕</button>
                   </div>
                 </div>
@@ -952,6 +981,11 @@ export default function WitchlightChronik() {
                         placeholder="Was wissen die Spieler über diese Person..." />
                     </div>
                 }
+                {n.location && n.location !== "unbekannt" && (
+                  <p style={{fontFamily:"'Cinzel',serif",fontSize:"0.45rem",letterSpacing:"0.1em",textTransform:"uppercase",color:"#9a78b8",marginBottom:"0.4rem"}}>
+                    {NPC_LOCATIONS.find(l=>l.id===n.location)?.icon} {NPC_LOCATIONS.find(l=>l.id===n.location)?.label}
+                  </p>
+                )}
                 {gmMode && n.notes && <p style={{fontFamily:"'Cinzel',serif",fontSize:"0.5rem",letterSpacing:"0.1em",textTransform:"uppercase",color:"#d0a8e8",marginBottom:"0.3rem",marginTop:"0.5rem"}}>GM-Notiz: <span style={{fontFamily:"'IM Fell English',serif",fontStyle:"italic",fontSize:"0.8rem",letterSpacing:0,textTransform:"none",color:"#b08898"}}>{n.notes}</span></p>}
                 <div className="divider" />
                 <p style={{fontFamily:"'Cinzel',serif",fontSize:"0.5rem",letterSpacing:"0.15em",textTransform:"uppercase",color:"#c0a8d0",marginBottom:"0.5rem"}}>Spieler-Eindrücke</p>
@@ -978,24 +1012,71 @@ export default function WitchlightChronik() {
             );
           })()}
 
+          {/* Location tabs */}
+          {npcs.length > 0 && (
+            <div className="npc-loc-tabs">
+              {NPC_LOCATIONS.map(l => {
+                const count = l.id === "all" ? npcs.length : npcs.filter(n => (n.location || "unbekannt") === l.id).length;
+                if (l.id !== "all" && count === 0) return null;
+                return (
+                  <button key={l.id} className={`npc-loc-tab ${npcLocation === l.id ? "active" : ""}`}
+                    onClick={() => setNpcLocation(l.id)}>
+                    <span>{l.icon}</span>{l.label}
+                    <span style={{fontFamily:"'Cinzel',serif",fontSize:"0.38rem",opacity:0.7,marginLeft:"0.15rem"}}>({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Search bar */}
+          {npcs.length > 0 && (
+            <div className="npc-search-wrap">
+              <span className="npc-search-icon">🔍</span>
+              <input className="npc-search-input" value={npcSearch}
+                onChange={e => setNpcSearch(e.target.value)}
+                placeholder="Nach Name oder Fraktion suchen..." />
+            </div>
+          )}
+
           {npcs.length === 0
             ? <div className="empty">Noch keine NPCs eingetragen.<br /><span style={{fontSize:"0.85rem"}}>Die Welt füllt sich langsam... 👥</span></div>
-            : <div className="npc-grid">
-              {npcs.map(n => (
-                <div key={n.id} className="npc-card" onClick={() => setExpandedNpc(expandedNpc === n.id ? null : n.id)}>
-                  <div className="npc-img">
-                    {n.imageUrl ? <img src={n.imageUrl} alt={n.name} onError={e => { e.target.style.display="none"; e.target.parentNode.innerHTML="👤"; }} /> : "👤"}
-                  </div>
-                  <div className="npc-card-body">
-                    <div style={{display:"flex",alignItems:"center",gap:"0.3rem",marginBottom:"0.1rem"}}>
-                      <span className="npc-status-dot" style={{background:npcColor(n.status)}} />
-                      <p className="npc-card-name">{n.name}</p>
-                    </div>
-                    {n.faction && <p className="npc-card-faction">{n.faction}</p>}
-                  </div>
+            : (() => {
+              const filtered = npcs.filter(n => {
+                const locMatch = npcLocation === "all" || (n.location || "unbekannt") === npcLocation;
+                const q = npcSearch.toLowerCase().trim();
+                const searchMatch = !q || n.name.toLowerCase().includes(q) || (n.faction||"").toLowerCase().includes(q);
+                return locMatch && searchMatch;
+              });
+              if (filtered.length === 0) return (
+                <div className="empty" style={{paddingTop:"1.5rem"}}>
+                  Keine NPCs gefunden.<br /><span style={{fontSize:"0.85rem"}}>Versuch eine andere Suche oder einen anderen Ort. ✦</span>
                 </div>
-              ))}
-            </div>
+              );
+              return (
+                <div className="npc-grid">
+                  {filtered.map(n => (
+                    <div key={n.id} className="npc-card" onClick={() => setExpandedNpc(expandedNpc === n.id ? null : n.id)}>
+                      <div className="npc-img">
+                        {n.imageUrl ? <img src={n.imageUrl} alt={n.name} onError={e => { e.target.style.display="none"; e.target.parentNode.innerHTML="👤"; }} /> : "👤"}
+                      </div>
+                      <div className="npc-card-body">
+                        <div style={{display:"flex",alignItems:"center",gap:"0.3rem",marginBottom:"0.1rem"}}>
+                          <span className="npc-status-dot" style={{background:npcColor(n.status)}} />
+                          <p className="npc-card-name">{n.name}</p>
+                        </div>
+                        {n.faction && <p className="npc-card-faction">{n.faction}</p>}
+                        {n.location && n.location !== "unbekannt" && (
+                          <p style={{fontFamily:"'Cinzel',serif",fontSize:"0.38rem",letterSpacing:"0.08em",textTransform:"uppercase",color:"#9a78b8",marginTop:"0.2rem"}}>
+                            {NPC_LOCATIONS.find(l=>l.id===n.location)?.icon} {NPC_LOCATIONS.find(l=>l.id===n.location)?.label}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()
           }
         </div>
       )}
