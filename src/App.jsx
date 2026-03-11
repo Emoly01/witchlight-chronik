@@ -195,8 +195,12 @@ export default function WitchlightChronik() {
   const [noteForm, setNoteForm] = useState("");
   const [editingNote, setEditingNote] = useState(null);
   const [quoteForm, setQuoteForm] = useState({ speaker: "", text: "" });
+  const [editingQuote, setEditingQuote] = useState(null);  // NEW
+  const [editingQuoteText, setEditingQuoteText] = useState("");  // NEW
   const [playerQuestForm, setPlayerQuestForm] = useState({ title: "", description: "" });
   const [npcImpression, setNpcImpression] = useState({ npcId: null, text: "" });
+  const [editingImpression, setEditingImpression] = useState(null); // NEW: { npcId, impId }
+  const [editingImpressionText, setEditingImpressionText] = useState(""); // NEW
   const [playerSnippetForm, setPlayerSnippetForm] = useState({ title: "", text: "" });
   const [showPlayerSnippetForm, setShowPlayerSnippetForm] = useState(false);
 
@@ -316,6 +320,25 @@ export default function WitchlightChronik() {
     if (!npcImpression.text.trim() || !playerName) return;
     un(npcs.map(n => n.id === npcId ? { ...n, impressions: [...(n.impressions || []), { id: makeId(), text: npcImpression.text.trim(), author: playerName, ts: Date.now() }] } : n));
     setNpcImpression({ npcId: null, text: "" });
+  };
+
+  // NEW: save edited impression
+  const saveImpression = (npcId, impId) => {
+    if (!editingImpressionText.trim()) return;
+    un(npcs.map(n => n.id === npcId
+      ? { ...n, impressions: (n.impressions || []).map(imp => imp.id === impId ? { ...imp, text: editingImpressionText.trim() } : imp) }
+      : n
+    ));
+    setEditingImpression(null);
+    setEditingImpressionText("");
+  };
+
+  // NEW: save edited quote
+  const saveQuote = (quoteId) => {
+    if (!editingQuoteText.trim()) return;
+    uqt(quotes.map(q => q.id === quoteId ? { ...q, text: editingQuoteText.trim() } : q));
+    setEditingQuote(null);
+    setEditingQuoteText("");
   };
 
   const saveQuest = () => {
@@ -469,8 +492,11 @@ export default function WitchlightChronik() {
         .quote-mark { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #e0d0f0; line-height: 0.5; display: block; margin-bottom: 0.4rem; }
         .quote-text { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.95rem; color: #3a1858; line-height: 1.65; margin: 0 0 0.5rem; }
         .quote-speaker { font-family: 'Cinzel', serif; font-size: 0.45rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7a5890; }
-        .quote-del { float: right; background: none; border: none; color: #e0d0e8; cursor: pointer; font-size: 0.75rem; transition: color 0.15s; padding: 0; line-height: 1; }
+        .quote-actions { display: flex; gap: 0.3rem; float: right; }
+        .quote-del { background: none; border: none; color: #e0d0e8; cursor: pointer; font-size: 0.75rem; transition: color 0.15s; padding: 0; line-height: 1; }
         .quote-del:hover { color: #d08090; }
+        .quote-edit-btn { background: none; border: none; color: #c8b8d8; cursor: pointer; font-size: 0.7rem; transition: color 0.15s; padding: 0; line-height: 1; font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
+        .quote-edit-btn:hover { color: #9070b0; }
 
         .snippet-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); }
         .snippet-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; font-style: italic; color: #3a1858; margin: 0 0 0.3rem; }
@@ -530,7 +556,6 @@ export default function WitchlightChronik() {
         .narrative b, .narrative strong { color: #5a3878; }
         .narrative em, .narrative i { font-style: italic; color: #7858a0; }
 
-        /* ── GM Plan ── */
         /* ── NPC location tabs + search ── */
         .npc-loc-tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin-bottom: 0.8rem; background: rgba(248,240,252,0.6); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.2rem; flex-wrap: nowrap; }
         .npc-loc-tabs::-webkit-scrollbar { display: none; }
@@ -542,6 +567,18 @@ export default function WitchlightChronik() {
         .npc-search-input:focus { border-color: #c094c8; }
         .npc-search-input::placeholder { color: #c0a8d0; font-style: italic; }
         .npc-search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: #c0a8d0; font-size: 0.85rem; pointer-events: none; }
+
+        /* ── Inline edit for impressions ── */
+        .impression-edit-row { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+        .impression-edit-input { flex: 1; background: rgba(255,255,255,0.9); border: 1px solid #c094c8; border-radius: 6px; padding: 0.3rem 0.5rem; font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.85rem; color: #3a1848; outline: none; }
+        .btn-tiny { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.5rem; border-radius: 12px; border: 1px solid; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+        .btn-tiny-primary { color: #fff; background: #b078d0; border-color: #b078d0; }
+        .btn-tiny-primary:hover { background: #9858c0; }
+        .btn-tiny-secondary { color: #b090c0; background: rgba(240,232,252,0.8); border-color: #e0d0f0; }
+        .btn-tiny-secondary:hover { background: #ece0f8; }
+
+        /* ── Inline edit for quotes ── */
+        .quote-edit-input { width: 100%; background: rgba(255,255,255,0.9); border: 1px solid #c094c8; border-radius: 6px; padding: 0.4rem 0.5rem; font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.92rem; color: #3a1858; outline: none; margin-bottom: 0.4rem; resize: vertical; min-height: 3rem; }
 
         .gm-note-card { background: rgba(255,248,255,0.9); border: 1px solid #e0d0f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); }
         .gm-note-card:hover { box-shadow: 0 4px 18px rgba(160,120,200,0.12); }
@@ -828,21 +865,50 @@ export default function WitchlightChronik() {
               <div className="f-group"><label className="f-label">Wer?</label>
                 <input className="f-input" value={quoteForm.speaker} onChange={e => setQuoteForm(f=>({...f,speaker:e.target.value}))} placeholder={playerName || "Charakter"} /></div>
               <div className="f-group"><label className="f-label">Was wurde gesagt?</label>
-                <input className="f-input" value={quoteForm.text} onChange={e => setQuoteForm(f=>({...f,text:e.target.value}))} placeholder="Das unvergessliche Zitat..." /></div>
+                <input className="f-input" value={quoteForm.text} onChange={e => setQuoteForm(f=>({...f,text:e.target.value}))} placeholder="Das unvergessliche Zitat..."
+                  onKeyDown={e => e.key === "Enter" && addQuote()} /></div>
             </div>
             <button className="btn-primary" onClick={addQuote} disabled={!quoteForm.text.trim()}>Hinzufügen</button>
           </div>
           {quotes.length === 0
             ? <div className="empty">Noch keine Zitate gesammelt.<br /><span style={{fontSize:"0.85rem"}}>Die erste denkwürdige Aussage wartet. ❝</span></div>
             : <div className="quotes-grid">
-              {quotes.map(q => (
-                <div key={q.id} className="quote-card">
-                  {(gmMode || q.speaker === playerName) && <button className="quote-del" onClick={() => uqt(quotes.filter(x => x.id !== q.id))}>✕</button>}
-                  <span className="quote-mark">❝</span>
-                  <p className="quote-text">{q.text}</p>
-                  <p className="quote-speaker">— {q.speaker}</p>
-                </div>
-              ))}
+              {quotes.map(q => {
+                const canEdit = gmMode || q.speaker === playerName;
+                const isEditing = editingQuote === q.id;
+                return (
+                  <div key={q.id} className="quote-card">
+                    {/* Actions row */}
+                    {canEdit && (
+                      <div className="quote-actions">
+                        {!isEditing && (
+                          <button className="quote-edit-btn" title="Bearbeiten"
+                            onClick={() => { setEditingQuote(q.id); setEditingQuoteText(q.text); }}>✎</button>
+                        )}
+                        <button className="quote-del" title="Löschen"
+                          onClick={() => { if(isEditing) { setEditingQuote(null); setEditingQuoteText(""); } uqt(quotes.filter(x => x.id !== q.id)); }}>✕</button>
+                      </div>
+                    )}
+                    <span className="quote-mark">❝</span>
+                    {/* Inline edit mode */}
+                    {isEditing ? (
+                      <>
+                        <textarea className="quote-edit-input" value={editingQuoteText}
+                          onChange={e => setEditingQuoteText(e.target.value)}
+                          onKeyDown={e => { if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveQuote(q.id); } if(e.key === "Escape") { setEditingQuote(null); setEditingQuoteText(""); } }}
+                          autoFocus />
+                        <div style={{display:"flex",gap:"0.3rem",marginBottom:"0.4rem"}}>
+                          <button className="btn-tiny btn-tiny-primary" onClick={() => saveQuote(q.id)} disabled={!editingQuoteText.trim()}>✓ Speichern</button>
+                          <button className="btn-tiny btn-tiny-secondary" onClick={() => { setEditingQuote(null); setEditingQuoteText(""); }}>Abbrechen</button>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="quote-text">{q.text}</p>
+                    )}
+                    <p className="quote-speaker">— {q.speaker}</p>
+                  </div>
+                );
+              })}
             </div>
           }
         </div>
@@ -991,18 +1057,46 @@ export default function WitchlightChronik() {
                 <p style={{fontFamily:"'Cinzel',serif",fontSize:"0.5rem",letterSpacing:"0.15em",textTransform:"uppercase",color:"#c0a8d0",marginBottom:"0.5rem"}}>Spieler-Eindrücke</p>
                 {(n.impressions||[]).length > 0 && (
                   <div className="impression-list" style={{marginBottom:"0.6rem"}}>
-                    {n.impressions.map(imp => (
-                      <div key={imp.id} className="impression">
-                        "{imp.text}"
-                        <p className="impression-author">— {imp.author}</p>
-                      </div>
-                    ))}
+                    {n.impressions.map(imp => {
+                      const isEditingImp = editingImpression?.npcId === n.id && editingImpression?.impId === imp.id;
+                      const canEditImp = gmMode || imp.author === playerName;
+                      return (
+                        <div key={imp.id} className="impression">
+                          {isEditingImp ? (
+                            <>
+                              <div className="impression-edit-row">
+                                <input className="impression-edit-input" value={editingImpressionText}
+                                  onChange={e => setEditingImpressionText(e.target.value)}
+                                  onKeyDown={e => { if(e.key === "Enter") saveImpression(n.id, imp.id); if(e.key === "Escape") { setEditingImpression(null); setEditingImpressionText(""); } }}
+                                  autoFocus />
+                                <button className="btn-tiny btn-tiny-primary" onClick={() => saveImpression(n.id, imp.id)} disabled={!editingImpressionText.trim()}>✓</button>
+                                <button className="btn-tiny btn-tiny-secondary" onClick={() => { setEditingImpression(null); setEditingImpressionText(""); }}>✕</button>
+                              </div>
+                            </>
+                          ) : (
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"0.4rem"}}>
+                              <span>"{imp.text}"</span>
+                              {canEditImp && (
+                                <div style={{display:"flex",gap:"0.2rem",flexShrink:0,marginTop:"0.05rem"}}>
+                                  <button className="btn-tiny btn-tiny-secondary" style={{padding:"0.1rem 0.35rem"}}
+                                    onClick={() => { setEditingImpression({npcId:n.id,impId:imp.id}); setEditingImpressionText(imp.text); }}>✎</button>
+                                  <button className="btn-tiny btn-tiny-secondary" style={{padding:"0.1rem 0.35rem",color:"#c06080",borderColor:"#e0c0c8"}}
+                                    onClick={() => un(npcs.map(x => x.id === n.id ? {...x, impressions:(x.impressions||[]).filter(i => i.id !== imp.id)} : x))}>✕</button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <p className="impression-author">— {imp.author}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {playerName && (
                   <div style={{display:"flex",gap:"0.5rem"}}>
                     <input className="f-input" style={{flex:1}} value={npcImpression.npcId === n.id ? npcImpression.text : ""}
                       onChange={e => setNpcImpression({npcId:n.id,text:e.target.value})}
+                      onKeyDown={e => e.key === "Enter" && addImpression(n.id)}
                       placeholder={`Dein Eindruck von ${n.name}...`} />
                     <button className="btn-primary" style={{whiteSpace:"nowrap"}} onClick={() => addImpression(n.id)}
                       disabled={npcImpression.npcId !== n.id || !npcImpression.text.trim()}>✦ Senden</button>
@@ -1081,7 +1175,7 @@ export default function WitchlightChronik() {
         </div>
       )}
 
-      {/* ══════════════════ FUNDSTÜCKE ══════════════════ */}
+      {/* ══════════════════ FUNDSTÜCKE (GM only for add/edit/delete) ══════════════════ */}
       {tab === "fundstucke" && (
         <div className="page">
           <div className="section-hdr">
@@ -1123,8 +1217,11 @@ export default function WitchlightChronik() {
                     <p className="fund-detail-title">{item.title}</p>
                     <p className="fund-detail-meta">{ftype?.icon} {ftype?.label} · {formatDate(item.ts)}</p>
                   </div>
-                  <div style={{display:"flex",gap:"0.4rem",flexShrink:0}}>
-                    {gmMode && <button className="btn-danger" onClick={() => { uf(fundstucke.filter(x => x.id !== item.id)); setExpandedFund(null); }}>✕ Löschen</button>}
+                  <div style={{display:"flex",gap:"0.4rem",flexShrink:0,alignItems:"center"}}>
+                    {/* Only GM can delete */}
+                    {gmMode && (
+                      <button className="btn-danger" onClick={() => { uf(fundstucke.filter(x => x.id !== item.id)); setExpandedFund(null); }}>✕ Löschen</button>
+                    )}
                     <button className="btn-danger" onClick={() => setExpandedFund(null)}>✕</button>
                   </div>
                 </div>
@@ -1188,7 +1285,6 @@ export default function WitchlightChronik() {
             </div>
           )}
 
-          {/* Category filter buttons */}
           <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap",marginBottom:"1rem"}}>
             {GM_CATEGORIES.map(c => {
               const count = gmNotes.filter(n => n.category === c.id).length;
