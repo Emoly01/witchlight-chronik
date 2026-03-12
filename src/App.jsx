@@ -1102,6 +1102,9 @@ export default function WitchlightChronik() {
                       disabled={npcImpression.npcId !== n.id || !npcImpression.text.trim()}>✦ Senden</button>
                   </div>
                 )}
+                <div style={{marginTop:"1rem",paddingTop:"0.8rem",borderTop:"1px solid #f0e4f8",textAlign:"center"}}>
+                  <button className="btn-secondary" onClick={() => setExpandedNpc(null)}>✕ Schließen</button>
+                </div>
               </div>
             );
           })()}
