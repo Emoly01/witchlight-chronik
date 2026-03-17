@@ -31,8 +31,9 @@ const FONT_COLORS = [
 function RichEditor({ value, onChange, placeholder, rows = 5 }) {
   const ref = useRef(null);
   const isInternalChange = useRef(false);
+  const [bubble, setBubble] = useState(null); // { x, y } or null
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const colorPickerRef = useRef(null);
+  const wrapRef = useRef(null);
 
   useEffect(() => {
     if (ref.current && ref.current.innerHTML !== value && !isInternalChange.current) {
@@ -41,14 +42,31 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
     isInternalChange.current = false;
   }, [value]);
 
+  // Show bubble when text is selected inside this editor
   useEffect(() => {
-    const handler = (e) => {
-      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target)) {
+    const onSelectionChange = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) {
+        setBubble(null);
         setShowColorPicker(false);
+        return;
       }
+      // Check selection is inside this editor
+      const range = sel.getRangeAt(0);
+      if (!ref.current || !ref.current.contains(range.commonAncestorContainer)) {
+        setBubble(null);
+        setShowColorPicker(false);
+        return;
+      }
+      const rect = range.getBoundingClientRect();
+      const wrapRect = wrapRef.current.getBoundingClientRect();
+      setBubble({
+        x: rect.left - wrapRect.left + rect.width / 2,
+        y: rect.top - wrapRect.top,
+      });
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("selectionchange", onSelectionChange);
+    return () => document.removeEventListener("selectionchange", onSelectionChange);
   }, []);
 
   const handleInput = () => {
@@ -70,54 +88,91 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
   };
 
   const tools = [
-    { label: "B",  title: "Fett",         cmd: "bold",               style: { fontWeight: 700 } },
-    { label: "I",  title: "Kursiv",        cmd: "italic",             style: { fontStyle: "italic" } },
-    { label: "U",  title: "Unterstrichen", cmd: "underline",          style: { textDecoration: "underline" } },
-    { label: "•",  title: "Aufzählung",    cmd: "insertUnorderedList",style: {} },
-    { label: "⇥",  title: "Einrücken",     cmd: "indent",             style: { fontSize: "0.9rem" } },
-    { label: "⇤",  title: "Ausrücken",     cmd: "outdent",            style: { fontSize: "0.9rem" } },
-    { label: "—",  title: "Trennlinie",    cmd: null,
+    { label: "B", title: "Fett",         cmd: "bold",               style: { fontWeight: 700 } },
+    { label: "I", title: "Kursiv",        cmd: "italic",             style: { fontStyle: "italic" } },
+    { label: "U", title: "Unterstrichen", cmd: "underline",          style: { textDecoration: "underline" } },
+    { label: "•", title: "Aufzählung",    cmd: "insertUnorderedList",style: {} },
+    { label: "⇥", title: "Einrücken",     cmd: "indent",             style: { fontSize: "0.9rem" } },
+    { label: "⇤", title: "Ausrücken",     cmd: "outdent",            style: { fontSize: "0.9rem" } },
+    { label: "—", title: "Trennlinie",    cmd: null,
       action: () => exec("insertHTML", "<hr style='border:none;border-top:1px solid #e0d0f0;margin:0.5rem 0;'>"),
       style: {} },
   ];
 
   return (
-    <div className="rich-editor-wrap">
-      <div className="rich-toolbar">
-        {tools.map(t => (
-          <button key={t.label} title={t.title} className="rich-tool-btn"
-            onMouseDown={e => { e.preventDefault(); t.action ? t.action() : exec(t.cmd); }}
-            style={t.style}>{t.label}</button>
-        ))}
-        <div ref={colorPickerRef} style={{ position: "relative", display: "inline-block" }}>
-          <button title="Schriftfarbe" className="rich-tool-btn"
-            onMouseDown={e => { e.preventDefault(); setShowColorPicker(v => !v); }}
-            style={{ gap: "0.25rem", minWidth: "2.4rem" }}>
-            <span style={{ fontSize: "0.75rem" }}>A</span>
-            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "linear-gradient(135deg, #c094c8, #b8860b, #c06080)", flexShrink: 0, display: "inline-block" }} />
-          </button>
-          {showColorPicker && (
-            <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fdf8fc", border: "1px solid #e0d0f0", borderRadius: "8px", padding: "0.5rem", boxShadow: "0 6px 24px rgba(160,120,200,0.2)", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.3rem", minWidth: "150px" }}>
-              {FONT_COLORS.map(c => (
-                <button key={c.label} title={c.label}
-                  onMouseDown={e => { e.preventDefault(); applyColor(c.value); }}
-                  style={{ background: "rgba(255,255,255,0.9)", border: "1px solid #e0d0f0", borderRadius: "4px", cursor: "pointer", padding: "0.25rem 0.3rem", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.12s" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "#c094c8"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "#e0d0f0"}>
-                  <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: c.swatch, flexShrink: 0, border: c.value === null ? "1px solid #c0a8d0" : "none" }} />
-                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: "0.38rem", letterSpacing: "0.08em", color: c.swatch, whiteSpace: "nowrap", textTransform: "uppercase" }}>{c.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+    <div ref={wrapRef} className="rich-editor-wrap" style={{ position: "relative" }}>
+      {/* Floating bubble toolbar */}
+      {bubble && (
+        <div
+          style={{
+            position: "absolute",
+            left: bubble.x,
+            top: bubble.y,
+            transform: "translate(-50%, calc(-100% - 8px))",
+            zIndex: 200,
+            background: "#fdf8fc",
+            border: "1px solid #d8c4e8",
+            borderRadius: "10px",
+            padding: "0.3rem 0.4rem",
+            display: "flex",
+            gap: "0.2rem",
+            alignItems: "center",
+            boxShadow: "0 4px 20px rgba(160,120,200,0.25)",
+            flexWrap: "nowrap",
+            whiteSpace: "nowrap",
+          }}
+          onMouseDown={e => e.preventDefault()}
+        >
+          {tools.map(t => (
+            <button key={t.label} title={t.title} className="rich-tool-btn"
+              onMouseDown={e => { e.preventDefault(); t.action ? t.action() : exec(t.cmd); }}
+              style={t.style}>{t.label}</button>
+          ))}
+          {/* Colour trigger */}
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <button title="Schriftfarbe" className="rich-tool-btn"
+              onMouseDown={e => { e.preventDefault(); setShowColorPicker(v => !v); }}
+              style={{ gap: "0.25rem", minWidth: "2.4rem" }}>
+              <span style={{ fontSize: "0.75rem" }}>A</span>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "linear-gradient(135deg, #c094c8, #b8860b, #c06080)", flexShrink: 0, display: "inline-block" }} />
+            </button>
+            {showColorPicker && (
+              <div style={{
+                position: "absolute", bottom: "calc(100% + 4px)", left: "50%",
+                transform: "translateX(-50%)", zIndex: 300,
+                background: "#fdf8fc", border: "1px solid #e0d0f0", borderRadius: "8px",
+                padding: "0.5rem", boxShadow: "0 6px 24px rgba(160,120,200,0.2)",
+                display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.3rem", minWidth: "150px",
+              }}>
+                {FONT_COLORS.map(c => (
+                  <button key={c.label} title={c.label}
+                    onMouseDown={e => { e.preventDefault(); applyColor(c.value); }}
+                    style={{ background: "rgba(255,255,255,0.9)", border: "1px solid #e0d0f0", borderRadius: "4px", cursor: "pointer", padding: "0.25rem 0.3rem", display: "flex", alignItems: "center", gap: "0.3rem", transition: "all 0.12s" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = "#c094c8"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = "#e0d0f0"}>
+                    <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: c.swatch, flexShrink: 0, border: c.value === null ? "1px solid #c0a8d0" : "none" }} />
+                    <span style={{ fontFamily: "'Cinzel', serif", fontSize: "0.38rem", letterSpacing: "0.08em", color: c.swatch, whiteSpace: "nowrap", textTransform: "uppercase" }}>{c.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Little arrow */}
+          <div style={{
+            position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)",
+            width: 0, height: 0,
+            borderLeft: "5px solid transparent", borderRight: "5px solid transparent",
+            borderTop: "5px solid #d8c4e8",
+          }} />
         </div>
-      </div>
+      )}
       <div ref={ref} className="rich-content" contentEditable suppressContentEditableWarning
         onInput={handleInput} data-placeholder={placeholder}
         style={{ minHeight: `${rows * 1.6}rem` }} />
     </div>
   );
 }
+
 
 const REACTIONS = ["✨","💀","😂","❤️","🎲","😱"];
 const DEFAULT_PIN = "1234";
@@ -537,7 +592,7 @@ export default function WitchlightChronik() {
         /* ── Rich Editor ── */
         .rich-editor-wrap { border: 1px solid #e0d0f0; border-radius: 8px; overflow: visible; background: rgba(255,255,255,0.9); transition: border-color 0.15s; }
         .rich-editor-wrap:focus-within { border-color: #c094c8; }
-        .rich-toolbar { display: flex; gap: 0.2rem; padding: 0.4rem 0.5rem; background: rgba(240,232,252,0.95); border-bottom: 1px solid #e8d8f0; flex-wrap: wrap; align-items: center; position: sticky; top: 56px; z-index: 20; border-radius: 8px 8px 0 0; backdrop-filter: blur(8px); box-shadow: 0 2px 8px rgba(160,120,200,0.08); }
+        .rich-toolbar { display: none; }
         .rich-tool-btn { font-family: 'Cinzel', serif; font-size: 0.7rem; min-width: 1.8rem; height: 1.8rem; background: rgba(255,255,255,0.8); border: 1px solid #e0d0f0; color: #7850a0; cursor: pointer; border-radius: 4px; transition: all 0.12s; display: flex; align-items: center; justify-content: center; padding: 0 0.3rem; }
         .rich-tool-btn:hover { background: #e8d8f8; border-color: #c094c8; }
         .rich-tool-btn:active { transform: scale(0.92); background: #d8c8f0; }
