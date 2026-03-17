@@ -535,9 +535,9 @@ export default function WitchlightChronik() {
         .card-act-edit:hover { background: #e8d8f8; color: #7850a0; }
 
         /* ── Rich Editor ── */
-        .rich-editor-wrap { border: 1px solid #e0d0f0; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.9); transition: border-color 0.15s; }
+        .rich-editor-wrap { border: 1px solid #e0d0f0; border-radius: 8px; overflow: visible; background: rgba(255,255,255,0.9); transition: border-color 0.15s; }
         .rich-editor-wrap:focus-within { border-color: #c094c8; }
-        .rich-toolbar { display: flex; gap: 0.2rem; padding: 0.4rem 0.5rem; background: rgba(240,232,252,0.6); border-bottom: 1px solid #e8d8f0; flex-wrap: wrap; align-items: center; }
+        .rich-toolbar { display: flex; gap: 0.2rem; padding: 0.4rem 0.5rem; background: rgba(240,232,252,0.95); border-bottom: 1px solid #e8d8f0; flex-wrap: wrap; align-items: center; position: sticky; top: 56px; z-index: 20; border-radius: 8px 8px 0 0; backdrop-filter: blur(8px); box-shadow: 0 2px 8px rgba(160,120,200,0.08); }
         .rich-tool-btn { font-family: 'Cinzel', serif; font-size: 0.7rem; min-width: 1.8rem; height: 1.8rem; background: rgba(255,255,255,0.8); border: 1px solid #e0d0f0; color: #7850a0; cursor: pointer; border-radius: 4px; transition: all 0.12s; display: flex; align-items: center; justify-content: center; padding: 0 0.3rem; }
         .rich-tool-btn:hover { background: #e8d8f8; border-color: #c094c8; }
         .rich-tool-btn:active { transform: scale(0.92); background: #d8c8f0; }
