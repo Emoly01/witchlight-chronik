@@ -258,6 +258,7 @@ export default function WitchlightChronik() {
   const [reactions, setReactions] = useState({});
   const [fundstucke, setFundstucke] = useState([]);
   const [gmNotes, setGmNotes] = useState([]);
+  const [theories, setTheories] = useState([]);
 
   const [expanded, setExpanded] = useState({});
   const [expandedNpc, setExpandedNpc] = useState(null);
@@ -309,6 +310,23 @@ export default function WitchlightChronik() {
   const [playerSnippetForm, setPlayerSnippetForm] = useState({ title: "", text: "" });
   const [showPlayerSnippetForm, setShowPlayerSnippetForm] = useState(false);
 
+  // ── Theorien ──
+  const [theoryForm, setTheoryForm] = useState({ title: "", text: "", category: "plot" });
+  const [showTheoryForm, setShowTheoryForm] = useState(false);
+  const [editingTheory, setEditingTheory] = useState(null);
+
+  const THEORY_CATEGORIES = [
+    { id: "plot",    label: "Plot-Theorie",   icon: "🔮", color: "#b078d0" },
+    { id: "npc",     label: "NPC-Theorie",    icon: "👤", color: "#94a8d8" },
+    { id: "ort",     label: "Ort / Geheimnis",icon: "🗝",  color: "#e8c878" },
+    { id: "wild",    label: "Wildes Gerücht", icon: "🌪", color: "#d8a0a0" },
+  ];
+  const THEORY_REACTS = [
+    { emoji: "👍", label: "Glaub ich auch" },
+    { emoji: "👎", label: "Glaub ich nicht" },
+    { emoji: "🤯", label: "Whoa" },
+  ];
+
   // ── Fundstücke ──
   const [fundForm, setFundForm] = useState({ type: "brief", title: "", text: "", imageUrl: "" });
   const [showFundForm, setShowFundForm] = useState(false);
@@ -343,6 +361,7 @@ export default function WitchlightChronik() {
         ["wtm-s-reactions",   setReactions,   {}],
         ["wtm-s-fundstucke",  setFundstucke,  []],
         ["wtm-s-gmnotes",     setGmNotes,     []],
+        ["wtm-s-theories",    setTheories,    []],
       ];
       for (const [key, setter, def] of pairs) {
         try {
@@ -365,6 +384,7 @@ export default function WitchlightChronik() {
   const ureact = (u) => { setReactions(u); ss("wtm-s-reactions",  u); };
   const uf  = (u) => { setFundstucke(u);  ss("wtm-s-fundstucke",  u); };
   const ugn = (u) => { setGmNotes(u);     ss("wtm-s-gmnotes",     u); };
+  const uth = (u) => { setTheories(u);    ss("wtm-s-theories",    u); };
 
   const pin = () => { try { return localStorage.getItem("wtm-gm-pin") || DEFAULT_PIN; } catch { return DEFAULT_PIN; } };
   const tryPin = () => {
@@ -497,6 +517,28 @@ export default function WitchlightChronik() {
 
   const needName = () => { setShowNamePrompt(true); setNameInput(playerName); };
 
+  // ── Theory functions ──
+  const addTheory = () => {
+    if (!theoryForm.title.trim() || !playerName) return;
+    if (editingTheory) {
+      uth(theories.map(t => t.id === editingTheory ? { ...t, title: theoryForm.title.trim(), text: theoryForm.text, category: theoryForm.category } : t));
+      setEditingTheory(null);
+    } else {
+      uth([{ id: makeId(), title: theoryForm.title.trim(), text: theoryForm.text, category: theoryForm.category, author: playerName, ts: Date.now(), reacts: {} }, ...theories]);
+    }
+    setTheoryForm({ title: "", text: "", category: "plot" }); setShowTheoryForm(false);
+  };
+
+  const reactTheory = (theoryId, emoji) => {
+    uth(theories.map(t => {
+      if (t.id !== theoryId) return t;
+      const reacts = { ...(t.reacts || {}) };
+      const key = `${emoji}`;
+      reacts[key] = (reacts[key] || 0) + 1;
+      return { ...t, reacts };
+    }));
+  };
+
   const tabs = [
     { id: "chronik",    icon: "📖", label: "Chronik" },
     { id: "spieler",    icon: "✦",  label: "Spieler" },
@@ -612,6 +654,22 @@ export default function WitchlightChronik() {
         .pnote-author { font-family: 'Cinzel', serif; font-size: 0.48rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #c094c8; margin: 0 0 0.3rem; }
         .pnote-text { font-size: 0.92rem; color: #3a2048; line-height: 1.6; margin: 0; }
         .pnote-date { font-family: 'Cinzel', serif; font-size: 0.4rem; letter-spacing: 0.1em; color: #7a5890; margin-top: 0.25rem; }
+
+        /* ── Theorien ── */
+        .theory-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e8d8f0; }
+        .theory-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 10px rgba(160,120,200,0.08); transition: box-shadow 0.15s; }
+        .theory-card:hover { box-shadow: 0 4px 16px rgba(160,120,200,0.12); }
+        .theory-cat-badge { font-family: 'Cinzel', serif; font-size: 0.38rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; display: inline-flex; align-items: center; gap: 0.2rem; }
+        .theory-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; font-style: italic; color: #3a1858; margin: 0.4rem 0 0.2rem; line-height: 1.3; }
+        .theory-text { font-family: 'IM Fell English', serif; font-size: 0.9rem; color: #3a2048; line-height: 1.7; margin: 0 0 0.5rem; font-style: italic; }
+        .theory-author { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; color: #7a5890; }
+        .theory-react-row { display: flex; gap: 0.4rem; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px dashed #f0e4f8; align-items: center; flex-wrap: wrap; }
+        .theory-react-btn { background: rgba(240,232,252,0.6); border: 1px solid #e4d4f0; border-radius: 20px; padding: 0.25rem 0.55rem; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem; transition: all 0.15s; }
+        .theory-react-btn:hover { background: #e8d8f8; border-color: #c8a8e8; transform: scale(1.05); }
+        .theory-react-count { font-family: 'Cinzel', serif; font-size: 0.48rem; color: #5a3890; min-width: 0.6rem; text-align: center; }
+        .theory-cat-picker { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+        .theory-cat-opt { font-family: 'Cinzel', serif; font-size: 0.45rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 0.6rem; border: 1px solid #e0d0f0; border-radius: 20px; cursor: pointer; color: #b090c0; background: rgba(255,255,255,0.8); transition: all 0.12s; display: flex; align-items: center; gap: 0.2rem; }
+        .theory-cat-opt.selected { border-color: #c094c8; color: #7850a0; background: #f0e8fc; }
 
         .form-panel { background: rgba(248,240,252,0.9); border: 1px solid #e0d0f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
         .form-title { font-family: 'Cinzel', serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #5a3890; margin: 0 0 0.8rem; }
@@ -896,6 +954,84 @@ export default function WitchlightChronik() {
                 <p className="pnote-date">{formatDate(n.ts)}</p>
               </div>
             ))}
+
+          {/* ── Gerüchte & Theorien ── */}
+          <div className="theory-section">
+            <div className="section-hdr">
+              <p className="section-title">💡 Gerüchte & Theorien</p>
+              {playerName && <button className="btn-add" onClick={() => { setShowTheoryForm(v => !v); setEditingTheory(null); setTheoryForm({ title: "", text: "", category: "plot" }); }}>+ Neue Theorie</button>}
+            </div>
+
+            {showTheoryForm && playerName && (
+              <div className="form-panel">
+                <p className="form-title">{editingTheory ? "Theorie bearbeiten" : `Neue Theorie — ${playerName}`}</p>
+                <div className="f-group">
+                  <label className="f-label">Kategorie</label>
+                  <div className="theory-cat-picker">
+                    {THEORY_CATEGORIES.map(c => (
+                      <span key={c.id} className={`theory-cat-opt ${theoryForm.category === c.id ? "selected" : ""}`}
+                        onClick={() => setTheoryForm(f => ({...f, category: c.id}))}>
+                        {c.icon} {c.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="f-group"><label className="f-label">These / Gerücht</label>
+                  <input className="f-input" value={theoryForm.title} onChange={e => setTheoryForm(f=>({...f,title:e.target.value}))} placeholder="z.B. Kettlesteam weiß mehr als er zugibt..." autoFocus /></div>
+                <div className="f-group"><label className="f-label">Begründung (optional)</label>
+                  <RichEditor value={theoryForm.text} onChange={v => setTheoryForm(f=>({...f,text:v}))} placeholder="Warum glaubst du das? Was sind die Hinweise?" rows={3} /></div>
+                <div className="f-actions">
+                  <button className="btn-primary" onClick={addTheory} disabled={!theoryForm.title.trim() || !playerName}>{editingTheory ? "Speichern" : "Theorie posten"}</button>
+                  <button className="btn-secondary" onClick={() => { setShowTheoryForm(false); setEditingTheory(null); setTheoryForm({ title: "", text: "", category: "plot" }); }}>Abbrechen</button>
+                </div>
+              </div>
+            )}
+
+            {theories.length === 0
+              ? <div className="empty" style={{paddingTop:"1rem",paddingBottom:"1rem"}}>Noch keine Theorien.<br /><span style={{fontSize:"0.85rem"}}>Was glaubt ihr, was hier wirklich vor sich geht? 💡</span></div>
+              : theories.map(t => {
+                const cat = THEORY_CATEGORIES.find(c => c.id === t.category);
+                const canEdit = t.author === playerName;
+                const reacts = t.reacts || {};
+                return (
+                  <div key={t.id} className="theory-card">
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                      <span className="theory-cat-badge" style={{color:cat?.color||"#b078d0",borderColor:cat?.color||"#b078d0"}}>
+                        {cat?.icon} {cat?.label}
+                      </span>
+                      <div style={{display:"flex",gap:"0.3rem",alignItems:"center"}}>
+                        {canEdit && (
+                          <button className="card-act-edit" onClick={() => {
+                            setTheoryForm({ title: t.title, text: t.text || "", category: t.category });
+                            setEditingTheory(t.id); setShowTheoryForm(true);
+                          }}>✎</button>
+                        )}
+                        {(canEdit || gmMode) && (
+                          <button className="btn-danger" onClick={() => uth(theories.filter(x => x.id !== t.id))}>✕</button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="theory-title">{t.title}</p>
+                    {t.text && <div className="theory-text" dangerouslySetInnerHTML={{ __html: t.text }} />}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"0.3rem"}}>
+                      <p className="theory-author">— {t.author} · {formatDate(t.ts)}</p>
+                    </div>
+                    <div className="theory-react-row">
+                      {THEORY_REACTS.map(r => {
+                        const count = reacts[r.emoji] || 0;
+                        return (
+                          <button key={r.emoji} className="theory-react-btn" title={r.label}
+                            onClick={() => reactTheory(t.id, r.emoji)}>
+                            <span>{r.emoji}</span>
+                            {count > 0 && <span className="theory-react-count">{count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         </div>
       )}
 
