@@ -31,7 +31,7 @@ const FONT_COLORS = [
 function RichEditor({ value, onChange, placeholder, rows = 5 }) {
   const ref = useRef(null);
   const isInternalChange = useRef(false);
-  const [bubble, setBubble] = useState(null); // { x, y } or null
+  const [bubble, setBubble] = useState(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const wrapRef = useRef(null);
 
@@ -42,7 +42,6 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
     isInternalChange.current = false;
   }, [value]);
 
-  // Show bubble when text is selected inside this editor
   useEffect(() => {
     const onSelectionChange = () => {
       const sel = window.getSelection();
@@ -51,7 +50,6 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
         setShowColorPicker(false);
         return;
       }
-      // Check selection is inside this editor
       const range = sel.getRangeAt(0);
       if (!ref.current || !ref.current.contains(range.commonAncestorContainer)) {
         setBubble(null);
@@ -101,7 +99,6 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
 
   return (
     <div ref={wrapRef} className="rich-editor-wrap" style={{ position: "relative" }}>
-      {/* Floating bubble toolbar */}
       {bubble && (
         <div
           style={{
@@ -128,7 +125,6 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
               onMouseDown={e => { e.preventDefault(); t.action ? t.action() : exec(t.cmd); }}
               style={t.style}>{t.label}</button>
           ))}
-          {/* Colour trigger */}
           <div style={{ position: "relative", display: "inline-block" }}>
             <button title="Schriftfarbe" className="rich-tool-btn"
               onMouseDown={e => { e.preventDefault(); setShowColorPicker(v => !v); }}
@@ -157,7 +153,6 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
               </div>
             )}
           </div>
-          {/* Little arrow */}
           <div style={{
             position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)",
             width: 0, height: 0,
@@ -199,6 +194,47 @@ const NPC_LOCATIONS = [
   { id: "unbekannt", label: "Unbekannt",              icon: "❓" },
 ];
 
+const NPC_SORT_OPTIONS = [
+  { id: "alpha",  label: "A → Z",     icon: "🔤" },
+  { id: "alpha-r",label: "Z → A",     icon: "🔤" },
+  { id: "status", label: "Status",    icon: "💚" },
+  { id: "newest", label: "Neueste",   icon: "🕐" },
+  { id: "oldest", label: "Älteste",   icon: "🕐" },
+];
+
+const STATUS_ORDER = ["lebendig", "vermisst", "unbekannt", "tot"];
+
+function sortNpcs(npcs, sortBy) {
+  const sorted = [...npcs];
+  switch (sortBy) {
+    case "alpha":
+      return sorted.sort((a, b) => a.name.localeCompare(b.name, "de"));
+    case "alpha-r":
+      return sorted.sort((a, b) => b.name.localeCompare(a.name, "de"));
+    case "status":
+      return sorted.sort((a, b) => {
+        const ai = STATUS_ORDER.indexOf(a.status || "unbekannt");
+        const bi = STATUS_ORDER.indexOf(b.status || "unbekannt");
+        if (ai !== bi) return ai - bi;
+        return a.name.localeCompare(b.name, "de");
+      });
+    case "newest":
+      return sorted.sort((a, b) => {
+        const ta = typeof a.id === "string" ? parseInt(a.id.split("").slice(0, 8).join(""), 36) : 0;
+        const tb = typeof b.id === "string" ? parseInt(b.id.split("").slice(0, 8).join(""), 36) : 0;
+        return tb - ta;
+      });
+    case "oldest":
+      return sorted.sort((a, b) => {
+        const ta = typeof a.id === "string" ? parseInt(a.id.split("").slice(0, 8).join(""), 36) : 0;
+        const tb = typeof b.id === "string" ? parseInt(b.id.split("").slice(0, 8).join(""), 36) : 0;
+        return ta - tb;
+      });
+    default:
+      return sorted;
+  }
+}
+
 function qColor(id) { return QUEST_STATUSES.find(s => s.id === id)?.color || "#c0b8c8"; }
 function npcColor(id) { return NPC_STATUSES.find(s => s.id === id)?.color || "#c0b8c8"; }
 
@@ -227,7 +263,21 @@ export default function WitchlightChronik() {
   const [expandedNpc, setExpandedNpc] = useState(null);
   const [npcLocation, setNpcLocation] = useState("all");
   const [npcSearch, setNpcSearch] = useState("");
+  const [npcSort, setNpcSort] = useState("alpha");
   const [expandedFund, setExpandedFund] = useState(null);
+
+  // ── Ref for NPC detail scroll ──
+  const npcDetailRef = useRef(null);
+
+  // Auto-scroll to NPC detail when one is expanded
+  useEffect(() => {
+    if (expandedNpc && npcDetailRef.current) {
+      // Small delay to let the DOM render
+      setTimeout(() => {
+        npcDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    }
+  }, [expandedNpc]);
 
   // ── GM forms ──
   const [recapForm, setRecapForm] = useState({ date: "", title: "", text: "" });
@@ -250,12 +300,12 @@ export default function WitchlightChronik() {
   const [noteForm, setNoteForm] = useState("");
   const [editingNote, setEditingNote] = useState(null);
   const [quoteForm, setQuoteForm] = useState({ speaker: "", text: "" });
-  const [editingQuote, setEditingQuote] = useState(null);  // NEW
-  const [editingQuoteText, setEditingQuoteText] = useState("");  // NEW
+  const [editingQuote, setEditingQuote] = useState(null);
+  const [editingQuoteText, setEditingQuoteText] = useState("");
   const [playerQuestForm, setPlayerQuestForm] = useState({ title: "", description: "" });
   const [npcImpression, setNpcImpression] = useState({ npcId: null, text: "" });
-  const [editingImpression, setEditingImpression] = useState(null); // NEW: { npcId, impId }
-  const [editingImpressionText, setEditingImpressionText] = useState(""); // NEW
+  const [editingImpression, setEditingImpression] = useState(null);
+  const [editingImpressionText, setEditingImpressionText] = useState("");
   const [playerSnippetForm, setPlayerSnippetForm] = useState({ title: "", text: "" });
   const [showPlayerSnippetForm, setShowPlayerSnippetForm] = useState(false);
 
@@ -377,7 +427,6 @@ export default function WitchlightChronik() {
     setNpcImpression({ npcId: null, text: "" });
   };
 
-  // NEW: save edited impression
   const saveImpression = (npcId, impId) => {
     if (!editingImpressionText.trim()) return;
     un(npcs.map(n => n.id === npcId
@@ -388,7 +437,6 @@ export default function WitchlightChronik() {
     setEditingImpressionText("");
   };
 
-  // NEW: save edited quote
   const saveQuote = (quoteId) => {
     if (!editingQuoteText.trim()) return;
     uqt(quotes.map(q => q.id === quoteId ? { ...q, text: editingQuoteText.trim() } : q));
@@ -518,6 +566,7 @@ export default function WitchlightChronik() {
         .npc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; }
         .npc-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 10px rgba(160,120,200,0.08); }
         .npc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(160,120,200,0.15); }
+        .npc-card.selected { border-color: #b078d0; box-shadow: 0 4px 16px rgba(160,120,200,0.25); }
         .npc-img { width: 100%; height: 180px; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #d0c0e0; overflow: hidden; }
         .npc-img img { width: 100%; height: 100%; object-fit: contain; object-position: center top; }
         .npc-card-body { padding: 0.6rem 0.7rem; }
@@ -525,7 +574,7 @@ export default function WitchlightChronik() {
         .npc-card-faction { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.72rem; color: #6a4888; margin: 0; }
         .npc-status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 0.3rem; }
 
-        .npc-detail { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; border-radius: 16px; padding: 1.2rem; margin-bottom: 0.8rem; box-shadow: 0 4px 20px rgba(160,120,200,0.1); }
+        .npc-detail { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; border-radius: 16px; padding: 1.2rem; margin-bottom: 0.8rem; box-shadow: 0 4px 20px rgba(160,120,200,0.1); scroll-margin-top: 120px; }
         .npc-detail-img { width: 100%; max-height: 280px; object-fit: contain; border-radius: 10px; margin-bottom: 0.8rem; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: block; }
         .npc-detail-img-placeholder { width: 100%; height: 80px; background: linear-gradient(135deg, #f0e8f8, #e8eef8); border-radius: 10px; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #d0c0e0; }
         .npc-detail-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: #3a1858; margin: 0 0 0.2rem; }
@@ -611,17 +660,22 @@ export default function WitchlightChronik() {
         .narrative b, .narrative strong { color: #5a3878; }
         .narrative em, .narrative i { font-style: italic; color: #7858a0; }
 
-        /* ── NPC location tabs + search ── */
+        /* ── NPC location tabs + search + sort ── */
         .npc-loc-tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin-bottom: 0.8rem; background: rgba(248,240,252,0.6); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.2rem; flex-wrap: nowrap; }
         .npc-loc-tabs::-webkit-scrollbar { display: none; }
         .npc-loc-tab { font-family: 'Cinzel', serif; font-size: 0.42rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.4rem 0.7rem; background: none; border: none; cursor: pointer; color: #8a6aaa; white-space: nowrap; border-radius: 7px; transition: all 0.15s; display: flex; align-items: center; gap: 0.25rem; }
         .npc-loc-tab.active { background: rgba(255,255,255,0.95); color: #5a3890; box-shadow: 0 1px 6px rgba(160,120,200,0.15); }
         .npc-loc-tab:hover:not(.active) { color: #5a3890; background: rgba(255,255,255,0.5); }
-        .npc-search-wrap { position: relative; margin-bottom: 0.8rem; }
+        .npc-controls-row { display: flex; gap: 0.6rem; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; }
+        .npc-search-wrap { position: relative; flex: 1; min-width: 160px; }
         .npc-search-input { width: 100%; background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; border-radius: 20px; padding: 0.5rem 0.8rem 0.5rem 2rem; font-family: 'IM Fell English', serif; font-size: 0.9rem; color: #3a1858; outline: none; transition: border-color 0.15s; }
         .npc-search-input:focus { border-color: #c094c8; }
         .npc-search-input::placeholder { color: #c0a8d0; font-style: italic; }
         .npc-search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: #c0a8d0; font-size: 0.85rem; pointer-events: none; }
+        .npc-sort-wrap { display: flex; gap: 0; background: rgba(248,240,252,0.6); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.15rem; flex-shrink: 0; }
+        .npc-sort-btn { font-family: 'Cinzel', serif; font-size: 0.4rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.35rem 0.55rem; background: none; border: none; cursor: pointer; color: #8a6aaa; white-space: nowrap; border-radius: 7px; transition: all 0.15s; display: flex; align-items: center; gap: 0.2rem; }
+        .npc-sort-btn.active { background: rgba(255,255,255,0.95); color: #5a3890; box-shadow: 0 1px 6px rgba(160,120,200,0.15); }
+        .npc-sort-btn:hover:not(.active) { color: #5a3890; background: rgba(255,255,255,0.5); }
 
         /* ── Inline edit for impressions ── */
         .impression-edit-row { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
@@ -933,7 +987,6 @@ export default function WitchlightChronik() {
                 const isEditing = editingQuote === q.id;
                 return (
                   <div key={q.id} className="quote-card">
-                    {/* Actions row */}
                     {canEdit && (
                       <div className="quote-actions">
                         {!isEditing && (
@@ -945,7 +998,6 @@ export default function WitchlightChronik() {
                       </div>
                     )}
                     <span className="quote-mark">❝</span>
-                    {/* Inline edit mode */}
                     {isEditing ? (
                       <>
                         <textarea className="quote-edit-input" value={editingQuoteText}
@@ -1031,7 +1083,7 @@ export default function WitchlightChronik() {
         <div className="page">
           <div className="section-hdr">
             <p className="section-title">👥 Gesichter</p>
-            {gmMode && <button className="btn-add" onClick={() => { setShowNpcForm(v => !v); setEditingNpc(null); setNpcForm({name:"",faction:"",description:"",imageUrl:"",status:"lebendig",notes:""}); }}>+ NPC hinzufügen</button>}
+            {gmMode && <button className="btn-add" onClick={() => { setShowNpcForm(v => !v); setEditingNpc(null); setNpcForm({name:"",faction:"",description:"",imageUrl:"",status:"lebendig",location:"unbekannt",notes:""}); }}>+ NPC hinzufügen</button>}
           </div>
           {gmMode && showNpcForm && (
             <div className="form-panel">
@@ -1067,11 +1119,49 @@ export default function WitchlightChronik() {
             </div>
           )}
 
+          {/* Location tabs */}
+          {npcs.length > 0 && (
+            <div className="npc-loc-tabs">
+              {NPC_LOCATIONS.map(l => {
+                const count = l.id === "all" ? npcs.length : npcs.filter(n => (n.location || "unbekannt") === l.id).length;
+                if (l.id !== "all" && count === 0) return null;
+                return (
+                  <button key={l.id} className={`npc-loc-tab ${npcLocation === l.id ? "active" : ""}`}
+                    onClick={() => setNpcLocation(l.id)}>
+                    <span>{l.icon}</span>{l.label}
+                    <span style={{fontFamily:"'Cinzel',serif",fontSize:"0.38rem",opacity:0.7,marginLeft:"0.15rem"}}>({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Search + Sort row */}
+          {npcs.length > 0 && (
+            <div className="npc-controls-row">
+              <div className="npc-search-wrap">
+                <span className="npc-search-icon">🔍</span>
+                <input className="npc-search-input" value={npcSearch}
+                  onChange={e => setNpcSearch(e.target.value)}
+                  placeholder="Nach Name oder Fraktion suchen..." />
+              </div>
+              <div className="npc-sort-wrap">
+                {NPC_SORT_OPTIONS.map(s => (
+                  <button key={s.id} className={`npc-sort-btn ${npcSort === s.id ? "active" : ""}`}
+                    onClick={() => setNpcSort(s.id)} title={s.label}>
+                    <span>{s.icon}</span>{s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* NPC Detail — rendered above the grid, with scroll ref */}
           {expandedNpc && (() => {
             const n = npcs.find(x => x.id === expandedNpc);
             if (!n) return null;
             return (
-              <div className="npc-detail">
+              <div className="npc-detail" ref={npcDetailRef}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem"}}>
                   <div>
                     <p className="npc-detail-name">{n.name}</p>
@@ -1164,33 +1254,6 @@ export default function WitchlightChronik() {
             );
           })()}
 
-          {/* Location tabs */}
-          {npcs.length > 0 && (
-            <div className="npc-loc-tabs">
-              {NPC_LOCATIONS.map(l => {
-                const count = l.id === "all" ? npcs.length : npcs.filter(n => (n.location || "unbekannt") === l.id).length;
-                if (l.id !== "all" && count === 0) return null;
-                return (
-                  <button key={l.id} className={`npc-loc-tab ${npcLocation === l.id ? "active" : ""}`}
-                    onClick={() => setNpcLocation(l.id)}>
-                    <span>{l.icon}</span>{l.label}
-                    <span style={{fontFamily:"'Cinzel',serif",fontSize:"0.38rem",opacity:0.7,marginLeft:"0.15rem"}}>({count})</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Search bar */}
-          {npcs.length > 0 && (
-            <div className="npc-search-wrap">
-              <span className="npc-search-icon">🔍</span>
-              <input className="npc-search-input" value={npcSearch}
-                onChange={e => setNpcSearch(e.target.value)}
-                placeholder="Nach Name oder Fraktion suchen..." />
-            </div>
-          )}
-
           {npcs.length === 0
             ? <div className="empty">Noch keine NPCs eingetragen.<br /><span style={{fontSize:"0.85rem"}}>Die Welt füllt sich langsam... 👥</span></div>
             : (() => {
@@ -1200,15 +1263,16 @@ export default function WitchlightChronik() {
                 const searchMatch = !q || n.name.toLowerCase().includes(q) || (n.faction||"").toLowerCase().includes(q);
                 return locMatch && searchMatch;
               });
-              if (filtered.length === 0) return (
+              const sorted = sortNpcs(filtered, npcSort);
+              if (sorted.length === 0) return (
                 <div className="empty" style={{paddingTop:"1.5rem"}}>
                   Keine NPCs gefunden.<br /><span style={{fontSize:"0.85rem"}}>Versuch eine andere Suche oder einen anderen Ort. ✦</span>
                 </div>
               );
               return (
                 <div className="npc-grid">
-                  {filtered.map(n => (
-                    <div key={n.id} className="npc-card" onClick={() => setExpandedNpc(expandedNpc === n.id ? null : n.id)}>
+                  {sorted.map(n => (
+                    <div key={n.id} className={`npc-card ${expandedNpc === n.id ? "selected" : ""}`} onClick={() => setExpandedNpc(expandedNpc === n.id ? null : n.id)}>
                       <div className="npc-img">
                         {n.imageUrl ? <img src={n.imageUrl} alt={n.name} onError={e => { e.target.style.display="none"; e.target.parentNode.innerHTML="👤"; }} /> : "👤"}
                       </div>
@@ -1233,7 +1297,7 @@ export default function WitchlightChronik() {
         </div>
       )}
 
-      {/* ══════════════════ FUNDSTÜCKE (GM only for add/edit/delete) ══════════════════ */}
+      {/* ══════════════════ FUNDSTÜCKE ══════════════════ */}
       {tab === "fundstucke" && (
         <div className="page">
           <div className="section-hdr">
@@ -1276,7 +1340,6 @@ export default function WitchlightChronik() {
                     <p className="fund-detail-meta">{ftype?.icon} {ftype?.label} · {formatDate(item.ts)}</p>
                   </div>
                   <div style={{display:"flex",gap:"0.4rem",flexShrink:0,alignItems:"center"}}>
-                    {/* Only GM can delete */}
                     {gmMode && (
                       <button className="btn-danger" onClick={() => { uf(fundstucke.filter(x => x.id !== item.id)); setExpandedFund(null); }}>✕ Löschen</button>
                     )}
@@ -1310,7 +1373,7 @@ export default function WitchlightChronik() {
         </div>
       )}
 
-      {/* ══════════════════ GM PLAN (GM only) ══════════════════ */}
+      {/* ══════════════════ GM PLAN ══════════════════ */}
       {tab === "gmplan" && gmMode && (
         <div className="page">
           <div className="section-hdr">
