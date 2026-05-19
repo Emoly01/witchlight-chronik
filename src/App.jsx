@@ -262,6 +262,7 @@ export default function WitchlightChronik() {
   const [pcDossiers, setPcDossiers] = useState([]);
   const [worldEntries, setWorldEntries] = useState([]);
   const [quickNotes, setQuickNotes] = useState([]);
+  const [tarotReadings, setTarotReadings] = useState([]);
 
   const [expanded, setExpanded] = useState({});
   const [expandedNpc, setExpandedNpc] = useState(null);
@@ -318,6 +319,12 @@ export default function WitchlightChronik() {
   // ── Quick Note forms ──
   const [qnForm, setQnForm] = useState({ text: "", tag: "" });
   const [editingQn, setEditingQn] = useState(null);
+
+  // ── Tarot forms ──
+  const [tarotForm, setTarotForm] = useState({ date: "", title: "", spread: "", cards: [{ position: "", name: "", reversed: false }], publicText: "", gmText: "" });
+  const [showTarotForm, setShowTarotForm] = useState(false);
+  const [editingTarot, setEditingTarot] = useState(null);
+  const [expandedTarot, setExpandedTarot] = useState(null);
 
   // ── Player forms ──
   const [noteForm, setNoteForm] = useState("");
@@ -387,6 +394,7 @@ export default function WitchlightChronik() {
         ["wtm-s-pcdossiers",  setPcDossiers,  []],
         ["wtm-s-worldentries",setWorldEntries,[]],
         ["wtm-s-quicknotes",  setQuickNotes,  []],
+        ["wtm-s-tarot",       setTarotReadings, []],
       ];
       for (const [key, setter, def] of pairs) {
         try {
@@ -413,6 +421,7 @@ export default function WitchlightChronik() {
   const upd = (u) => { setPcDossiers(u);  ss("wtm-s-pcdossiers",  u); };
   const uwe = (u) => { setWorldEntries(u);ss("wtm-s-worldentries",u); };
   const uqn = (u) => { setQuickNotes(u);  ss("wtm-s-quicknotes",  u); };
+  const utr = (u) => { setTarotReadings(u); ss("wtm-s-tarot", u); };
 
   const pin = () => { try { return localStorage.getItem("wtm-gm-pin") || DEFAULT_PIN; } catch { return DEFAULT_PIN; } };
   const tryPin = () => {
@@ -545,6 +554,35 @@ export default function WitchlightChronik() {
 
   const needName = () => { setShowNamePrompt(true); setNameInput(playerName); };
 
+  // ── Tarot functions ──
+  const addTarot = () => {
+    if (!tarotForm.title.trim()) return;
+    const reading = {
+      id: editingTarot || makeId(),
+      date: tarotForm.date || new Date().toISOString().slice(0,10),
+      title: tarotForm.title.trim(),
+      spread: tarotForm.spread.trim(),
+      cards: tarotForm.cards.filter(c => c.name.trim()),
+      publicText: tarotForm.publicText,
+      gmText: tarotForm.gmText,
+      ts: editingTarot ? (tarotReadings.find(r => r.id === editingTarot)?.ts ?? Date.now()) : Date.now(),
+    };
+    if (editingTarot) {
+      utr(tarotReadings.map(r => r.id === editingTarot ? reading : r));
+      setEditingTarot(null);
+    } else {
+      utr([reading, ...tarotReadings]);
+    }
+    setTarotForm({ date: "", title: "", spread: "", cards: [{ position: "", name: "", reversed: false }], publicText: "", gmText: "" });
+    setShowTarotForm(false);
+  };
+  const startEditTarot = (r) => {
+    setTarotForm({ date: r.date || "", title: r.title, spread: r.spread || "", cards: r.cards?.length ? r.cards : [{ position: "", name: "", reversed: false }], publicText: r.publicText || "", gmText: r.gmText || "" });
+    setEditingTarot(r.id);
+    setShowTarotForm(true);
+    setExpandedTarot(null);
+  };
+
   // ── PC Dossier functions ──
   const saveDossier = () => {
     if (!dossierForm.name.trim()) return;
@@ -622,6 +660,7 @@ export default function WitchlightChronik() {
     { id: "geschichten",icon: "🌙",  label: "Geschichten" },
     { id: "npcs",       icon: "👥",  label: "NPCs" },
     { id: "fundstucke", icon: "🔍",  label: "Fundstücke" },
+    { id: "tarot",      icon: "🔮",  label: "Tarot" },
     ...(gmMode ? [{ id: "gmplan", icon: "🔐", label: "GM-Plan" }] : []),
   ];
 
@@ -1626,6 +1665,117 @@ export default function WitchlightChronik() {
                 );
               })}
             </div>
+          }
+        </div>
+      )}
+
+      {/* ══════════════════ TAROT ══════════════════ */}
+      {tab === "tarot" && (
+        <div className="page">
+          <div className="section-hdr">
+            <p className="section-title">🔮 Tarot-Lesungen</p>
+            {gmMode && <button className="btn-add" onClick={() => { setShowTarotForm(v => !v); setEditingTarot(null); setTarotForm({ date: "", title: "", spread: "", cards: [{ position: "", name: "", reversed: false }], publicText: "", gmText: "" }); }}>+ Lesung</button>}
+          </div>
+
+          {gmMode && showTarotForm && (
+            <div className="form-panel">
+              <p className="form-title">{editingTarot ? "Lesung bearbeiten" : "Neue Tarot-Lesung"}</p>
+              <div className="f-group">
+                <label className="f-label">Datum</label>
+                <input className="f-input" type="date" value={tarotForm.date} onChange={e => setTarotForm(f => ({...f, date: e.target.value}))} />
+              </div>
+              <div className="f-group">
+                <label className="f-label">Titel</label>
+                <input className="f-input" value={tarotForm.title} onChange={e => setTarotForm(f => ({...f, title: e.target.value}))} placeholder="z.B. Die drei Schicksale..." autoFocus />
+              </div>
+              <div className="f-group">
+                <label className="f-label">Legung</label>
+                <input className="f-input" value={tarotForm.spread} onChange={e => setTarotForm(f => ({...f, spread: e.target.value}))} placeholder="z.B. Drei-Karten-Legung, Keltenkreuz..." />
+              </div>
+              <div className="f-group">
+                <label className="f-label">Karten</label>
+                {tarotForm.cards.map((card, i) => (
+                  <div key={i} style={{ display: "flex", gap: "0.4rem", marginBottom: "0.4rem", alignItems: "center" }}>
+                    <input className="f-input" style={{ flex: "0 0 32%" }} value={card.position} onChange={e => setTarotForm(f => { const cards = [...f.cards]; cards[i] = { ...cards[i], position: e.target.value }; return { ...f, cards }; })} placeholder="Position..." />
+                    <input className="f-input" style={{ flex: 1 }} value={card.name} onChange={e => setTarotForm(f => { const cards = [...f.cards]; cards[i] = { ...cards[i], name: e.target.value }; return { ...f, cards }; })} placeholder="Karte..." />
+                    <label style={{ display: "flex", alignItems: "center", gap: "0.2rem", fontFamily: "'Cinzel', serif", fontSize: "0.5rem", color: "#7a5890", flexShrink: 0, cursor: "pointer" }} title="Umgekehrt">
+                      <input type="checkbox" checked={card.reversed} onChange={e => setTarotForm(f => { const cards = [...f.cards]; cards[i] = { ...cards[i], reversed: e.target.checked }; return { ...f, cards }; })} />
+                      ↩
+                    </label>
+                    {tarotForm.cards.length > 1 && (
+                      <button style={{ background: "none", border: "none", cursor: "pointer", color: "#c090a0", fontSize: "0.8rem", flexShrink: 0 }} onClick={() => setTarotForm(f => ({ ...f, cards: f.cards.filter((_, j) => j !== i) }))}>✕</button>
+                    )}
+                  </div>
+                ))}
+                <button className="btn-secondary" style={{ fontSize: "0.7rem", padding: "0.25rem 0.6rem", marginTop: "0.2rem" }} onClick={() => setTarotForm(f => ({ ...f, cards: [...f.cards, { position: "", name: "", reversed: false }] }))}>+ Karte</button>
+              </div>
+              <div className="f-group">
+                <label className="f-label">Öffentliche Deutung</label>
+                <RichEditor value={tarotForm.publicText} onChange={v => setTarotForm(f => ({...f, publicText: v}))} placeholder="Was die Spieler über die Lesung wissen..." rows={4} />
+              </div>
+              <div className="f-group">
+                <label className="f-label" style={{ color: "#c094c8" }}>🔐 GM-Notizen</label>
+                <RichEditor value={tarotForm.gmText} onChange={v => setTarotForm(f => ({...f, gmText: v}))} placeholder="Verborgene Bedeutungen, Plot-Hinweise, wahre Deutung..." rows={4} />
+              </div>
+              <div className="f-actions">
+                <button className="btn-primary" onClick={addTarot} disabled={!tarotForm.title.trim()}>Speichern</button>
+                <button className="btn-secondary" onClick={() => { setShowTarotForm(false); setEditingTarot(null); }}>Abbrechen</button>
+              </div>
+            </div>
+          )}
+
+          {tarotReadings.length === 0
+            ? <div className="empty">Noch keine Tarot-Lesungen.<br /><span style={{fontSize:"0.85rem"}}>Die Karten schweigen noch. 🔮</span></div>
+            : tarotReadings.map(reading => {
+              const isOpen = expandedTarot === reading.id;
+              const dateStr = reading.date ? new Date(reading.date + "T12:00:00").toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }) : null;
+              return (
+                <div key={reading.id} className="card">
+                  <div className="card-header" onClick={() => setExpandedTarot(isOpen ? null : reading.id)}>
+                    <div className="card-info">
+                      <p className="card-title">{reading.title}</p>
+                      <p className="card-meta">
+                        {dateStr}{reading.spread ? ` · ${reading.spread}` : ""}
+                        {reading.cards?.length > 0 ? ` · ${reading.cards.length} Karte${reading.cards.length !== 1 ? "n" : ""}` : ""}
+                      </p>
+                    </div>
+                    <span className={`card-chevron ${isOpen ? "open" : ""}`}>▾</span>
+                  </div>
+                  {isOpen && (
+                    <div className="card-body">
+                      {reading.cards?.filter(c => c.name).length > 0 && (
+                        <div style={{ marginBottom: "1rem" }}>
+                          <p style={{ fontFamily: "'Cinzel', serif", fontSize: "0.5rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#7a5890", margin: "0 0 0.5rem" }}>Gezogene Karten</p>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                            {reading.cards.filter(c => c.name).map((card, i) => (
+                              <div key={i} style={{ background: "linear-gradient(135deg, #f0e8f8, #e8eef8)", border: "1px solid #d8c4e8", borderRadius: "8px", padding: "0.4rem 0.7rem", minWidth: "90px", textAlign: "center" }}>
+                                {card.position && <p style={{ fontFamily: "'Cinzel', serif", fontSize: "0.42rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#7a5890", margin: "0 0 0.2rem" }}>{card.position}</p>}
+                                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: "0.85rem", color: card.reversed ? "#c06080" : "#3a1858", margin: 0, fontStyle: card.reversed ? "italic" : "normal" }}>{card.name}{card.reversed ? " ↩" : ""}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {reading.publicText && (
+                        <div className="narrative" dangerouslySetInnerHTML={{ __html: reading.publicText }} />
+                      )}
+                      {gmMode && reading.gmText && (
+                        <div style={{ background: "rgba(192,148,200,0.08)", border: "1px solid #e8d0f0", borderRadius: "8px", padding: "0.8rem", marginTop: reading.publicText ? "0.8rem" : 0 }}>
+                          <p style={{ fontFamily: "'Cinzel', serif", fontSize: "0.45rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#c094c8", margin: "0 0 0.5rem" }}>🔐 GM-Notizen</p>
+                          <div className="narrative" dangerouslySetInnerHTML={{ __html: reading.gmText }} />
+                        </div>
+                      )}
+                      {gmMode && (
+                        <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.8rem", paddingTop: "0.8rem", borderTop: "1px dashed #e8d8f0" }}>
+                          <button className="btn-secondary" style={{ fontSize: "0.7rem", padding: "0.25rem 0.6rem" }} onClick={() => startEditTarot(reading)}>✏ Bearbeiten</button>
+                          <button className="btn-danger" onClick={() => { utr(tarotReadings.filter(r => r.id !== reading.id)); setExpandedTarot(null); }}>✕ Löschen</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })
           }
         </div>
       )}
