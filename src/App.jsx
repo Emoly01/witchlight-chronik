@@ -976,6 +976,9 @@ export default function WitchlightChronik() {
 
         .empty { text-align: center; padding: 3rem 1.5rem; font-family: 'IM Fell English', serif; font-style: italic; color: #8a68a8; font-size: 1rem; line-height: 1.8; }
 
+        /* ── Parchment texture — applied after all card rules so background-image overrides the shorthand ── */
+        .card, .npc-card, .npc-detail, .quest-card, .quote-card, .snippet-card, .pnote-card, .theory-card, .gm-note-card, .fund-card, .fund-detail, .dossier-card, .world-card, .tarot-reading-card { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"), radial-gradient(ellipse at 22% 35%, rgba(210,182,140,0.13) 0%, transparent 55%), radial-gradient(ellipse at 78% 65%, rgba(205,178,132,0.11) 0%, transparent 50%), radial-gradient(ellipse at 55% 8%, rgba(213,188,145,0.09) 0%, transparent 42%); }
+
         /* ── GM Plan Sub-tabs ── */
         .gm-sub-tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; margin-bottom: 1.2rem; background: rgba(248,240,252,0.6); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.2rem; }
         .gm-sub-tabs::-webkit-scrollbar { display: none; }
