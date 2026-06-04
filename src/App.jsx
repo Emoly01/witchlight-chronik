@@ -1159,7 +1159,6 @@ export default function WitchlightChronik() {
                     </span>
                     <div className="card-info">
                       <p className="card-title">{r.title}</p>
-                      <p className="card-meta">{formatDate(r.ts)}</p>
                     </div>
                     {gmMode && <button className="btn-danger" onClick={e => { e.stopPropagation(); if(window.confirm("Löschen?")) ur(recaps.filter(x => x.id !== r.id)); }}>✕</button>}
                     {gmMode && <button className="card-act-edit" onClick={e => { e.stopPropagation(); startEditRecap(r); }}>✎</button>}
