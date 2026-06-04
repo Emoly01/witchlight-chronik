@@ -729,7 +729,7 @@ export default function WitchlightChronik() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #faf4fb 0%, #f4eaf8 50%, #ecf0fa 100%)", color: "#3a2838", fontFamily: "'IM Fell English', Georgia, serif", fontSize: "110%" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #f3eaf8 0%, #e8d8f2 35%, #dde2f0 100%)", color: "#3a2838", fontFamily: "'IM Fell English', Georgia, serif", fontSize: "110%" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
         * { box-sizing: border-box; }
@@ -737,7 +737,7 @@ export default function WitchlightChronik() {
 
         .hdr { background: linear-gradient(135deg, #f0e8f8 0%, #e8eef8 100%); border-bottom: 1px solid #e0d0e8; padding: 1rem 1.2rem 0; position: sticky; top: 0; z-index: 30; }
         .hdr-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.7rem; }
-        .campaign-name { font-family: 'Playfair Display', serif; font-size: clamp(1rem, 4vw, 1.5rem); font-weight: 700; font-style: italic; color: #7850a0; margin: 0; letter-spacing: 0.02em; }
+        .campaign-name { font-family: 'Playfair Display', serif; font-size: clamp(1rem, 4vw, 1.5rem); font-weight: 700; font-style: italic; color: #7850a0; margin: 0; letter-spacing: 0.02em; text-shadow: 0 0 18px rgba(148,80,180,0.22), 0 0 40px rgba(148,80,180,0.09); }
         .campaign-sub { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.78rem; color: #7a5890; margin: 0.1rem 0 0; }
         .hdr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
         .gm-badge { font-family: 'Cinzel', serif; font-size: 0.45rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 2px; }
@@ -750,7 +750,7 @@ export default function WitchlightChronik() {
         .tab-row { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; border-top: 1px solid rgba(255,255,255,0.6); }
         .tab-row::-webkit-scrollbar { display: none; }
         .tab-btn { font-family: 'Cinzel', serif; font-size: 0.48rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.55rem 0.8rem; background: none; border: none; cursor: pointer; color: #8a6aaa; white-space: nowrap; transition: all 0.15s; border-bottom: 2px solid transparent; display: flex; align-items: center; gap: 0.3rem; }
-        .tab-btn.active { color: #7850a0; border-bottom-color: #a078d0; }
+        .tab-btn.active { color: #7850a0; border-bottom-color: #a078d0; text-shadow: 0 0 10px rgba(148,80,200,0.28); }
         .tab-btn:hover:not(.active) { color: #6a4898; }
         .tab-btn.gm-tab { color: #c094c8; }
         .tab-btn.gm-tab.active { color: #7850a0; border-bottom-color: #c094c8; }
@@ -758,7 +758,7 @@ export default function WitchlightChronik() {
 
         .page { padding: 1.2rem 1.2rem 7rem; max-width: 680px; margin: 0 auto; }
 
-        .se-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: linear-gradient(135deg, #f0e8f8 0%, #e8eef8 100%); border-top: 1px solid #d8c4e8; padding: 0.6rem 1rem 0.8rem; box-shadow: 0 -4px 18px rgba(160,120,200,0.12); }
+        .se-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: linear-gradient(135deg, #f0e8f8 0%, #e8eef8 100%); border-top: 1px solid #d8c4e8; padding: 0.6rem 1rem 0.8rem; box-shadow: 0 -2px 8px rgba(140,80,200,0.12), 0 -6px 28px rgba(140,80,200,0.16), 0 -16px 48px rgba(140,80,200,0.06); }
         .se-bar-top { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
         .se-date-label { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7a5890; white-space: nowrap; }
         .se-date-input { font-family: 'IM Fell English', serif; font-size: 0.82rem; background: rgba(255,255,255,0.8); border: 1px solid #d8c4e8; border-radius: 6px; padding: 0.25rem 0.5rem; color: #3a1858; outline: none; }
@@ -773,8 +773,8 @@ export default function WitchlightChronik() {
         .se-save-btn { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 0.8rem; background: linear-gradient(135deg, #b078d0, #9878c8); color: #fff; border: none; border-radius: 6px; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
         .se-save-btn:hover { opacity: 0.85; }
 
-        .card { background: rgba(255,255,255,0.92); border: 1px solid #d8c4e8; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); animation: fadeIn 0.2s ease; backdrop-filter: blur(4px); }
-        .card:hover { box-shadow: 0 4px 18px rgba(160,120,200,0.12); }
+        .card { background: rgba(255,255,255,0.92); border: 1px solid #d8c4e8; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 4px rgba(120,80,160,0.07), 0 6px 20px rgba(120,80,160,0.1), 0 16px 40px rgba(120,80,160,0.05); animation: fadeIn 0.2s ease; backdrop-filter: blur(4px); }
+        .card:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 3px 6px rgba(120,80,160,0.1), 0 10px 28px rgba(120,80,160,0.14), 0 20px 48px rgba(120,80,160,0.06); }
         .card-header { display: flex; align-items: flex-start; gap: 0.7rem; cursor: pointer; }
         .card-info { flex: 1; }
         .card-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: #3a1858; margin: 0 0 0.15rem; line-height: 1.3; }
@@ -793,9 +793,9 @@ export default function WitchlightChronik() {
         .add-react-btn:hover { opacity: 1; background: rgba(240,232,252,0.8); transform: scale(1.1); }
 
         .npc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.8rem; }
-        .npc-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 10px rgba(160,120,200,0.08); }
-        .npc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(160,120,200,0.15); }
-        .npc-card.selected { border-color: #b078d0; box-shadow: 0 4px 16px rgba(160,120,200,0.25); }
+        .npc-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 6px rgba(120,80,160,0.07), 0 8px 22px rgba(120,80,160,0.09); }
+        .npc-card:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 4px 10px rgba(120,80,160,0.1), 0 12px 32px rgba(120,80,160,0.14); }
+        .npc-card.selected { border-color: #b078d0; box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 4px 16px rgba(120,80,160,0.2), 0 12px 32px rgba(120,80,160,0.12); }
         .npc-img { width: 100%; height: 180px; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #d0c0e0; overflow: hidden; }
         .npc-img img { width: 100%; height: 100%; object-fit: contain; object-position: center top; }
         .npc-card-body { padding: 0.6rem 0.7rem; }
@@ -803,7 +803,7 @@ export default function WitchlightChronik() {
         .npc-card-faction { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.72rem; color: #6a4888; margin: 0; }
         .npc-status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 0.3rem; }
 
-        .npc-detail { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; border-radius: 16px; padding: 1.2rem; margin-bottom: 0.8rem; box-shadow: 0 4px 20px rgba(160,120,200,0.1); scroll-margin-top: 120px; }
+        .npc-detail { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; border-radius: 16px; padding: 1.2rem; margin-bottom: 0.8rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 10px rgba(120,80,160,0.08), 0 12px 32px rgba(120,80,160,0.1), 0 24px 56px rgba(120,80,160,0.05); scroll-margin-top: 120px; }
         .npc-detail-img { width: 100%; max-height: 280px; object-fit: contain; border-radius: 10px; margin-bottom: 0.8rem; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: block; }
         .npc-detail-img-placeholder { width: 100%; height: 80px; background: linear-gradient(135deg, #f0e8f8, #e8eef8); border-radius: 10px; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #d0c0e0; }
         .npc-detail-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: #3a1858; margin: 0 0 0.2rem; }
@@ -813,7 +813,7 @@ export default function WitchlightChronik() {
         .impression { background: rgba(240,232,252,0.5); border: 1px solid #e8d8f0; border-radius: 8px; padding: 0.5rem 0.7rem; font-style: italic; font-size: 0.85rem; color: #3a1848; }
         .impression-author { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; color: #7a5890; margin-top: 0.2rem; }
 
-        .quest-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 0.5rem; display: flex; align-items: flex-start; gap: 0.7rem; box-shadow: 0 2px 8px rgba(160,120,200,0.06); }
+        .quest-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 10px; padding: 0.8rem 1rem; margin-bottom: 0.5rem; display: flex; align-items: flex-start; gap: 0.7rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 6px rgba(120,80,160,0.06), 0 6px 18px rgba(120,80,160,0.08); }
         .quest-status { font-family: 'Cinzel', serif; font-size: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.5rem; border-radius: 3px; border: 1px solid var(--qc); color: var(--qc); flex-shrink: 0; margin-top: 0.15rem; white-space: nowrap; }
         .quest-title { font-family: 'Cinzel', serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; color: #3a1858; margin: 0 0 0.2rem; }
         .quest-desc { font-size: 0.85rem; color: #4a3060; line-height: 1.5; margin: 0; }
@@ -821,7 +821,7 @@ export default function WitchlightChronik() {
         .suggested-badge { font-family: 'Cinzel', serif; font-size: 0.38rem; letter-spacing: 0.1em; text-transform: uppercase; color: #b8a0c8; background: #f4ecfc; border: 1px dashed #d8c8e8; padding: 0.1rem 0.35rem; border-radius: 2px; margin-left: 0.4rem; }
 
         .quotes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.8rem; }
-        .quote-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 10px; padding: 1rem; box-shadow: 0 2px 10px rgba(160,120,200,0.08); }
+        .quote-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 10px; padding: 1rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(120,80,160,0.07), 0 8px 22px rgba(120,80,160,0.1); }
         .quote-mark { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #e0d0f0; line-height: 0.5; display: block; margin-bottom: 0.4rem; }
         .quote-text { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.95rem; color: #3a1858; line-height: 1.65; margin: 0 0 0.5rem; }
         .quote-speaker { font-family: 'Cinzel', serif; font-size: 0.45rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7a5890; }
@@ -831,7 +831,7 @@ export default function WitchlightChronik() {
         .quote-edit-btn { background: none; border: none; color: #c8b8d8; cursor: pointer; font-size: 0.7rem; transition: color 0.15s; padding: 0; line-height: 1; font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
         .quote-edit-btn:hover { color: #9070b0; }
 
-        .snippet-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); }
+        .snippet-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(120,80,160,0.07), 0 8px 24px rgba(120,80,160,0.1), 0 18px 40px rgba(120,80,160,0.05); }
         .snippet-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; font-style: italic; color: #3a1858; margin: 0 0 0.3rem; }
         .snippet-author { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; color: #7a5890; margin: 0 0 0.5rem; }
         .snippet-text { font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.92rem; line-height: 1.9; color: #2a1838; }
@@ -844,8 +844,8 @@ export default function WitchlightChronik() {
 
         /* ── Theorien ── */
         .theory-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e8d8f0; }
-        .theory-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 10px rgba(160,120,200,0.08); transition: box-shadow 0.15s; }
-        .theory-card:hover { box-shadow: 0 4px 16px rgba(160,120,200,0.12); }
+        .theory-card { background: rgba(255,255,255,0.75); border: 1px solid #e8d8f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.88), 0 2px 6px rgba(120,80,160,0.07), 0 8px 22px rgba(120,80,160,0.09); transition: box-shadow 0.15s; }
+        .theory-card:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.88), 0 3px 8px rgba(120,80,160,0.1), 0 10px 28px rgba(120,80,160,0.13); }
         .theory-cat-badge { font-family: 'Cinzel', serif; font-size: 0.38rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; display: inline-flex; align-items: center; gap: 0.2rem; }
         .theory-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 700; font-style: italic; color: #3a1858; margin: 0.4rem 0 0.2rem; line-height: 1.3; }
         .theory-text { font-family: 'IM Fell English', serif; font-size: 0.9rem; color: #3a2048; line-height: 1.7; margin: 0 0 0.5rem; font-style: italic; }
@@ -934,8 +934,8 @@ export default function WitchlightChronik() {
         /* ── Inline edit for quotes ── */
         .quote-edit-input { width: 100%; background: rgba(255,255,255,0.9); border: 1px solid #c094c8; border-radius: 6px; padding: 0.4rem 0.5rem; font-family: 'IM Fell English', serif; font-style: italic; font-size: 0.92rem; color: #3a1858; outline: none; margin-bottom: 0.4rem; resize: vertical; min-height: 3rem; }
 
-        .gm-note-card { background: rgba(255,248,255,0.9); border: 1px solid #e0d0f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); }
-        .gm-note-card:hover { box-shadow: 0 4px 18px rgba(160,120,200,0.12); }
+        .gm-note-card { background: rgba(255,248,255,0.9); border: 1px solid #e0d0f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(120,80,160,0.07), 0 8px 24px rgba(120,80,160,0.1); }
+        .gm-note-card:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 3px 8px rgba(120,80,160,0.1), 0 10px 30px rgba(120,80,160,0.14); }
         .gm-cat-badge { font-family: 'Cinzel', serif; font-size: 0.38rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; display: inline-flex; align-items: center; gap: 0.2rem; }
         .cat-picker { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
         .cat-opt { font-family: 'Cinzel', serif; font-size: 0.45rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.3rem 0.6rem; border: 1px solid #e0d0f0; border-radius: 20px; cursor: pointer; color: #b090c0; background: rgba(255,255,255,0.8); transition: all 0.12s; display: flex; align-items: center; gap: 0.2rem; }
@@ -957,8 +957,8 @@ export default function WitchlightChronik() {
 
         /* ── Fundstücke ── */
         .fund-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.8rem; }
-        .fund-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 10px rgba(160,120,200,0.08); }
-        .fund-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(160,120,200,0.15); }
+        .fund-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.15s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 2px 6px rgba(120,80,160,0.07), 0 8px 22px rgba(120,80,160,0.09); }
+        .fund-card:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 4px 10px rgba(120,80,160,0.1), 0 12px 30px rgba(120,80,160,0.14); }
         .fund-card-top { padding: 0.9rem 0.9rem 0.4rem; display: flex; align-items: flex-start; gap: 0.5rem; }
         .fund-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; }
         .fund-card-name { font-family: 'Cinzel', serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; color: #3a1858; line-height: 1.3; }
@@ -985,8 +985,8 @@ export default function WitchlightChronik() {
         .gm-sub-count { font-size: 0.38rem; opacity: 0.6; }
 
         /* ── PC Dossiers ── */
-        .dossier-card { background: rgba(255,248,255,0.92); border: 1px solid #e0d0f0; border-radius: 14px; padding: 0; margin-bottom: 0.8rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); overflow: hidden; transition: box-shadow 0.15s; }
-        .dossier-card:hover { box-shadow: 0 4px 18px rgba(160,120,200,0.12); }
+        .dossier-card { background: rgba(255,248,255,0.92); border: 1px solid #e0d0f0; border-radius: 14px; padding: 0; margin-bottom: 0.8rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(120,80,160,0.07), 0 8px 24px rgba(120,80,160,0.1), 0 18px 40px rgba(120,80,160,0.05); overflow: hidden; transition: box-shadow 0.15s; }
+        .dossier-card:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 3px 8px rgba(120,80,160,0.1), 0 10px 30px rgba(120,80,160,0.14), 0 22px 50px rgba(120,80,160,0.06); }
         .dossier-header { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; cursor: pointer; }
         .dossier-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #f0e8f8, #e8eef8); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #d0c0e0; flex-shrink: 0; overflow: hidden; border: 2px solid #e8d8f0; }
         .dossier-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -1001,8 +1001,8 @@ export default function WitchlightChronik() {
         .dossier-section-content { padding: 0.6rem 1rem 0.8rem; border-bottom: 1px solid #f8f0fc; }
 
         /* ── World Entries ── */
-        .world-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; box-shadow: 0 2px 10px rgba(160,120,200,0.06); cursor: pointer; transition: all 0.15s; }
-        .world-card:hover { box-shadow: 0 4px 16px rgba(160,120,200,0.12); transform: translateY(-1px); }
+        .world-card { background: rgba(255,255,255,0.8); border: 1px solid #e8d8f0; border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 0.6rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.88), 0 2px 6px rgba(120,80,160,0.06), 0 6px 18px rgba(120,80,160,0.08); cursor: pointer; transition: all 0.15s; }
+        .world-card:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.88), 0 3px 8px rgba(120,80,160,0.09), 0 10px 26px rgba(120,80,160,0.12); transform: translateY(-1px); }
         .world-type-badge { font-family: 'Cinzel', serif; font-size: 0.38rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.12rem 0.4rem; border-radius: 3px; border: 1px solid; display: inline-flex; align-items: center; gap: 0.2rem; }
         .world-detail { background: rgba(255,255,255,0.95); border: 1px solid #e0d0f0; border-radius: 14px; padding: 1.2rem; margin-bottom: 0.8rem; box-shadow: 0 4px 20px rgba(160,120,200,0.1); animation: fadeIn 0.2s ease; }
         .world-filter-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.8rem; }
@@ -1025,8 +1025,8 @@ export default function WitchlightChronik() {
         .tag { font-family: 'Cinzel', serif; font-size: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.15rem 0.4rem; border-radius: 3px; border: 1px solid; display: inline-block; }
 
         /* ── Tarot ── */
-        .tarot-reading-card { background: rgba(255,255,255,0.92); border: 1px solid #d0b8e8; border-radius: 14px; margin-bottom: 0.9rem; box-shadow: 0 3px 16px rgba(80,40,140,0.1); overflow: hidden; animation: fadeIn 0.2s ease; transition: box-shadow 0.15s; }
-        .tarot-reading-card:hover { box-shadow: 0 5px 22px rgba(80,40,140,0.16); }
+        .tarot-reading-card { background: rgba(255,255,255,0.92); border: 1px solid #d0b8e8; border-radius: 14px; margin-bottom: 0.9rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 3px 8px rgba(80,40,140,0.09), 0 10px 28px rgba(80,40,140,0.1), 0 20px 48px rgba(80,40,140,0.05); overflow: hidden; animation: fadeIn 0.2s ease; transition: box-shadow 0.15s; }
+        .tarot-reading-card:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 10px rgba(80,40,140,0.12), 0 12px 34px rgba(80,40,140,0.15), 0 24px 56px rgba(80,40,140,0.06); }
         .tarot-card-hdr { background: linear-gradient(135deg, #2a1640 0%, #3a1e58 55%, #462470 100%); padding: 0.9rem 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
         .tarot-card-hdr-left { flex: 1; min-width: 0; }
         .tarot-card-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; font-style: italic; color: #f0e4ff; margin: 0 0 0.25rem; line-height: 1.3; }
