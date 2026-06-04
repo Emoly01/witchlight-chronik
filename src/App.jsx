@@ -858,8 +858,8 @@ export default function WitchlightChronik() {
         .form-panel { background: rgba(248,240,252,0.9); border: 1px solid #e0d0f0; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
         .form-title { font-family: 'Cinzel', serif; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #5a3890; margin: 0 0 0.8rem; }
         .f-group { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.6rem; }
-        .f-label { font-family: 'Cinzel', serif; font-size: 0.48rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #6a4890; }
-        .f-input { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; color: #3a2838; font-family: 'IM Fell English', serif; font-size: 0.95rem; padding: 0.5rem 0.7rem; outline: none; border-radius: 8px; width: 100%; transition: border-color 0.15s; }
+        .f-label { font-family: 'Cinzel', serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #6a4890; }
+        .f-input { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; color: #3a2838; font-family: 'IM Fell English', serif; font-size: 1.05rem; padding: 0.5rem 0.7rem; outline: none; border-radius: 8px; width: 100%; transition: border-color 0.15s; }
         .f-input:focus { border-color: #c094c8; }
         .f-input::placeholder { color: #d8c8e0; }
         .f-select { background: rgba(255,255,255,0.9); border: 1px solid #e0d0f0; color: #5a4068; font-family: 'Cinzel', serif; font-size: 0.6rem; padding: 0.5rem 0.7rem; outline: none; border-radius: 8px; width: 100%; cursor: pointer; }
@@ -1415,6 +1415,7 @@ export default function WitchlightChronik() {
                       <p className="quote-text">{q.text}</p>
                     )}
                     <p className="quote-speaker">— {q.speaker}</p>
+                    {q.sitzung && <p style={{fontFamily:"'IM Fell English',serif",fontStyle:"italic",fontSize:"0.75rem",color:"#b090c8",margin:"0.15rem 0 0",textAlign:"right"}}>{q.sitzung.split("-").reverse().join(".")}</p>}
                   </div>
                 );
               })}
