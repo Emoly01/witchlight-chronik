@@ -671,10 +671,13 @@ export default function WitchlightChronik() {
 
   const saveSe = () => {
     if (!seText.trim()) return;
+    // Read from localStorage directly so we always have the latest value even if
+    // the React state update from the date picker hasn't re-rendered yet.
+    const sitzung = (() => { try { return localStorage.getItem("wtm-se-sitzung") || seSitzung; } catch { return seSitzung; } })();
     if (seMode === "zitat") {
-      uqt([{ id: makeId(), speaker: seSpeaker.trim(), text: seText.trim(), ts: Date.now(), sitzung: seSitzung }, ...quotes]);
+      uqt([{ id: makeId(), speaker: seSpeaker.trim(), text: seText.trim(), ts: Date.now(), sitzung }, ...quotes]);
     } else {
-      uqn([{ id: makeId(), text: seText.trim(), tag: "", done: false, ts: Date.now(), sitzung: seSitzung }, ...quickNotes]);
+      uqn([{ id: makeId(), text: seText.trim(), tag: "", done: false, ts: Date.now(), sitzung }, ...quickNotes]);
     }
     setSeSpeaker("");
     setSeText("");
@@ -1415,7 +1418,7 @@ export default function WitchlightChronik() {
                       <p className="quote-text">{q.text}</p>
                     )}
                     <p className="quote-speaker">— {q.speaker}</p>
-                    {q.sitzung && <p style={{fontFamily:"'IM Fell English',serif",fontStyle:"italic",fontSize:"0.75rem",color:"#b090c8",margin:"0.15rem 0 0",textAlign:"right"}}>{q.sitzung.split("-").reverse().join(".")}</p>}
+                    {q.sitzung ? <p style={{fontFamily:"'IM Fell English',serif",fontStyle:"italic",fontSize:"0.8rem",color:"#7a5890",margin:"0.25rem 0 0",textAlign:"right"}}>{q.sitzung.split("-").reverse().join(".")}</p> : null}
                   </div>
                 );
               })}
