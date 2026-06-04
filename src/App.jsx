@@ -337,6 +337,13 @@ export default function WitchlightChronik() {
   const [editingNote, setEditingNote] = useState(null);
   const [quoteForm, setQuoteForm] = useState({ speaker: "", text: "" });
   const [editingQuote, setEditingQuote] = useState(null);
+
+  // ── Schnellerfassung bar ──
+  const [seMode, setSeMode] = useState("zitat"); // "zitat" | "notiz"
+  const [seSitzung, setSeSitzung] = useState(() => { try { return localStorage.getItem("wtm-se-sitzung") || ""; } catch { return ""; } });
+  const [seSpeaker, setSeSpeaker] = useState("");
+  const [seText, setSeText] = useState("");
+  const seTextRef = useRef(null);
   const [editingQuoteText, setEditingQuoteText] = useState("");
   const [playerQuestForm, setPlayerQuestForm] = useState({ title: "", description: "" });
   const [npcImpression, setNpcImpression] = useState({ npcId: null, text: "" });
@@ -662,6 +669,18 @@ export default function WitchlightChronik() {
     setQnForm({ text: "", tag: "" });
   };
 
+  const saveSe = () => {
+    if (!seText.trim()) return;
+    if (seMode === "zitat") {
+      uqt([{ id: makeId(), speaker: seSpeaker.trim(), text: seText.trim(), ts: Date.now(), sitzung: seSitzung }, ...quotes]);
+    } else {
+      uqn([{ id: makeId(), text: seText.trim(), tag: "", done: false, ts: Date.now(), sitzung: seSitzung }, ...quickNotes]);
+    }
+    setSeSpeaker("");
+    setSeText("");
+    setTimeout(() => seTextRef.current?.focus(), 0);
+  };
+
   const toggleQuickNote = (id) => {
     uqn(quickNotes.map(n => n.id === id ? { ...n, done: !n.done } : n));
   };
@@ -734,7 +753,22 @@ export default function WitchlightChronik() {
         .tab-btn.gm-tab.active { color: #7850a0; border-bottom-color: #c094c8; }
         .tab-icon { font-size: 0.8rem; }
 
-        .page { padding: 1.2rem; max-width: 680px; margin: 0 auto; }
+        .page { padding: 1.2rem 1.2rem 7rem; max-width: 680px; margin: 0 auto; }
+
+        .se-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: linear-gradient(135deg, #f0e8f8 0%, #e8eef8 100%); border-top: 1px solid #d8c4e8; padding: 0.6rem 1rem 0.8rem; box-shadow: 0 -4px 18px rgba(160,120,200,0.12); }
+        .se-bar-top { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .se-date-label { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7a5890; white-space: nowrap; }
+        .se-date-input { font-family: 'IM Fell English', serif; font-size: 0.82rem; background: rgba(255,255,255,0.8); border: 1px solid #d8c4e8; border-radius: 6px; padding: 0.25rem 0.5rem; color: #3a1858; outline: none; }
+        .se-date-input:focus { border-color: #c094c8; }
+        .se-toggle { display: flex; border: 1px solid #d8c4e8; border-radius: 6px; overflow: hidden; margin-left: auto; }
+        .se-toggle-btn { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.65rem; background: none; border: none; cursor: pointer; color: #8a6aaa; transition: all 0.15s; }
+        .se-toggle-btn.active { background: #c094c8; color: #fff; }
+        .se-row { display: flex; gap: 0.5rem; align-items: center; }
+        .se-input { font-family: 'IM Fell English', serif; font-size: 0.9rem; background: rgba(255,255,255,0.85); border: 1px solid #d8c4e8; border-radius: 6px; padding: 0.3rem 0.6rem; color: #3a1858; outline: none; flex: 1; }
+        .se-input:focus { border-color: #c094c8; }
+        .se-input-speaker { flex: 0 0 120px; }
+        .se-save-btn { font-family: 'Cinzel', serif; font-size: 0.42rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 0.8rem; background: linear-gradient(135deg, #b078d0, #9878c8); color: #fff; border: none; border-radius: 6px; cursor: pointer; white-space: nowrap; transition: opacity 0.15s; }
+        .se-save-btn:hover { opacity: 0.85; }
 
         .card { background: rgba(255,255,255,0.92); border: 1px solid #d8c4e8; border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; box-shadow: 0 2px 12px rgba(160,120,200,0.08); animation: fadeIn 0.2s ease; backdrop-filter: blur(4px); }
         .card:hover { box-shadow: 0 4px 18px rgba(160,120,200,0.12); }
@@ -2370,6 +2404,46 @@ export default function WitchlightChronik() {
                 })}
             </>
           )}
+        </div>
+      )}
+
+      {gmMode && (
+        <div className="se-bar">
+          <div className="se-bar-top">
+            <span className="se-date-label">Aktuelle Sitzung</span>
+            <input
+              type="date"
+              className="se-date-input"
+              value={seSitzung}
+              onChange={e => { setSeSitzung(e.target.value); try { localStorage.setItem("wtm-se-sitzung", e.target.value); } catch {} }}
+            />
+            <div className="se-toggle">
+              <button className={`se-toggle-btn${seMode === "zitat" ? " active" : ""}`} onClick={() => setSeMode("zitat")}>Zitat</button>
+              <button className={`se-toggle-btn${seMode === "notiz" ? " active" : ""}`} onClick={() => setSeMode("notiz")}>Notiz</button>
+            </div>
+          </div>
+          <div className="se-row">
+            {seMode === "zitat" && (
+              <input
+                type="text"
+                className="se-input se-input-speaker"
+                placeholder="Wer?"
+                value={seSpeaker}
+                onChange={e => setSeSpeaker(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") seTextRef.current?.focus(); }}
+              />
+            )}
+            <input
+              ref={seTextRef}
+              type="text"
+              className="se-input"
+              placeholder={seMode === "zitat" ? "Was wurde gesagt?" : "Notiz…"}
+              value={seText}
+              onChange={e => setSeText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") saveSe(); }}
+            />
+            <button className="se-save-btn" onClick={saveSe}>Speichern</button>
+          </div>
         </div>
       )}
     </div>
