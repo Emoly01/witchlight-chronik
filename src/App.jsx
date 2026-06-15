@@ -33,6 +33,7 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
   const isInternalChange = useRef(false);
   const [bubble, setBubble] = useState(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showFormatPicker, setShowFormatPicker] = useState(false);
   const wrapRef = useRef(null);
 
   useEffect(() => {
@@ -48,12 +49,14 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
       if (!sel || sel.isCollapsed || !sel.rangeCount) {
         setBubble(null);
         setShowColorPicker(false);
+        setShowFormatPicker(false);
         return;
       }
       const range = sel.getRangeAt(0);
       if (!ref.current || !ref.current.contains(range.commonAncestorContainer)) {
         setBubble(null);
         setShowColorPicker(false);
+        setShowFormatPicker(false);
         return;
       }
       const rect = range.getBoundingClientRect();
@@ -85,19 +88,21 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
     setShowColorPicker(false);
   };
 
+  const applyFormat = (tag) => {
+    ref.current?.focus();
+    document.execCommand("formatBlock", false, tag);
+    onChange(ref.current.innerHTML);
+    setShowFormatPicker(false);
+  };
+
+  const FORMATS = [
+    { label: "Normaler Text",  tag: "<p>",  preview: { fontFamily: "'IM Fell English', serif", fontSize: "0.95rem", fontWeight: 400 } },
+    { label: "Überschrift 1",  tag: "<h1>", preview: { fontFamily: "'Cinzel', serif", fontSize: "1.3rem", fontWeight: 700, color: "#5a3878" } },
+    { label: "Überschrift 2",  tag: "<h2>", preview: { fontFamily: "'Cinzel', serif", fontSize: "1.1rem", fontWeight: 700, color: "#5a3878" } },
+    { label: "Überschrift 3",  tag: "<h3>", preview: { fontFamily: "'Cinzel', serif", fontSize: "0.95rem", fontWeight: 700, color: "#5a3878" } },
+  ];
+
   const tools = [
-    { label: "H1", title: "Überschrift 1", cmd: null,
-      action: () => exec("formatBlock", "<h1>"),
-      style: { fontWeight: 700, fontSize: "0.75rem" } },
-    { label: "H2", title: "Überschrift 2", cmd: null,
-      action: () => exec("formatBlock", "<h2>"),
-      style: { fontWeight: 700, fontSize: "0.7rem" } },
-    { label: "H3", title: "Überschrift 3", cmd: null,
-      action: () => exec("formatBlock", "<h3>"),
-      style: { fontWeight: 700, fontSize: "0.65rem" } },
-    { label: "¶", title: "Normaler Text", cmd: null,
-      action: () => exec("formatBlock", "<p>"),
-      style: {} },
     { label: "B", title: "Fett",         cmd: "bold",               style: { fontWeight: 700 } },
     { label: "I", title: "Kursiv",        cmd: "italic",             style: { fontStyle: "italic" } },
     { label: "U", title: "Unterstrichen", cmd: "underline",          style: { textDecoration: "underline" } },
@@ -132,6 +137,34 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
           }}
           onMouseDown={e => e.preventDefault()}
         >
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <button title="Textformat" className="rich-tool-btn"
+              onMouseDown={e => { e.preventDefault(); setShowFormatPicker(v => !v); }}
+              style={{ gap: "0.2rem", minWidth: "2.6rem", fontFamily: "'Cinzel', serif" }}>
+              <span style={{ fontSize: "0.7rem", fontWeight: 700 }}>H</span>
+              <span style={{ fontSize: "0.55rem" }}>▾</span>
+            </button>
+            {showFormatPicker && (
+              <div style={{
+                position: "absolute", bottom: "calc(100% + 4px)", left: 0,
+                zIndex: 300,
+                background: "#fdf8fc", border: "1px solid #e0d0f0", borderRadius: "8px",
+                padding: "0.3rem", boxShadow: "0 6px 24px rgba(160,120,200,0.2)",
+                display: "flex", flexDirection: "column", gap: "0.15rem", minWidth: "130px",
+              }}>
+                {FORMATS.map(f => (
+                  <button key={f.label}
+                    onMouseDown={e => { e.preventDefault(); applyFormat(f.tag); }}
+                    style={{ background: "rgba(255,255,255,0.9)", border: "1px solid #e0d0f0", borderRadius: "4px", cursor: "pointer", padding: "0.25rem 0.5rem", textAlign: "left", transition: "all 0.12s", ...f.preview }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = "#c094c8"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = "#e0d0f0"}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="rich-tool-divider" />
           {tools.map(t => (
             <button key={t.label} title={t.title} className="rich-tool-btn"
               onMouseDown={e => { e.preventDefault(); t.action ? t.action() : exec(t.cmd); }}
@@ -902,6 +935,7 @@ export default function WitchlightChronik() {
         .rich-tool-btn { font-family: 'Cinzel', serif; font-size: 0.7rem; min-width: 1.8rem; height: 1.8rem; background: rgba(255,255,255,0.8); border: 1px solid #e0d0f0; color: #7850a0; cursor: pointer; border-radius: 4px; transition: all 0.12s; display: flex; align-items: center; justify-content: center; padding: 0 0.3rem; }
         .rich-tool-btn:hover { background: #e8d8f8; border-color: #c094c8; }
         .rich-tool-btn:active { transform: scale(0.92); background: #d8c8f0; }
+        .rich-tool-divider { width: 1px; height: 1.2rem; background: #e0d0f0; margin: 0 0.1rem; flex-shrink: 0; }
         .rich-content { padding: 0.6rem 0.8rem; font-family: 'IM Fell English', serif; font-size: 0.95rem; color: #3a2838; line-height: 1.85; outline: none; }
         .rich-content:empty:before { content: attr(data-placeholder); color: #d8c8e0; font-style: italic; pointer-events: none; }
         .rich-content ul { margin: 0.3rem 0 0.3rem 1.2rem; padding: 0; }
