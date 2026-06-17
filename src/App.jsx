@@ -97,9 +97,9 @@ function RichEditor({ value, onChange, placeholder, rows = 5 }) {
 
   const FORMATS = [
     { label: "Normaler Text",  tag: "<p>",  preview: { fontFamily: "'IM Fell English', serif", fontSize: "0.95rem", fontWeight: 400 } },
-    { label: "Überschrift 1",  tag: "<h1>", preview: { fontFamily: "'Cinzel', serif", fontSize: "1.3rem", fontWeight: 700, color: "#5a3878" } },
-    { label: "Überschrift 2",  tag: "<h2>", preview: { fontFamily: "'Cinzel', serif", fontSize: "1.1rem", fontWeight: 700, color: "#5a3878" } },
-    { label: "Überschrift 3",  tag: "<h3>", preview: { fontFamily: "'Cinzel', serif", fontSize: "0.95rem", fontWeight: 700, color: "#5a3878" } },
+    { label: "Überschrift 1",  tag: "<h1>", preview: { fontFamily: "'Playfair Display', serif", fontStyle: "italic", fontSize: "1.15rem", fontWeight: 700, color: "#3a1858" } },
+    { label: "Überschrift 2",  tag: "<h2>", preview: { fontFamily: "'Cinzel', serif", fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 700, color: "#5a3890" } },
+    { label: "Überschrift 3",  tag: "<h3>", preview: { fontFamily: "'Cinzel', serif", fontSize: "0.65rem", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 700, color: "#7850a0" } },
   ];
 
   const tools = [
@@ -942,10 +942,10 @@ export default function WitchlightChronik() {
         .rich-content ul ul { margin: 0.15rem 0 0.15rem 1.4rem; }
         .rich-content ul ul ul { margin: 0.1rem 0 0.1rem 1.4rem; }
         .rich-content li { margin-bottom: 0.2rem; }
-        .rich-content h1, .rich-content h2, .rich-content h3 { font-family: 'Cinzel', serif; color: #5a3878; margin: 0.5rem 0 0.3rem; line-height: 1.3; }
-        .rich-content h1 { font-size: 1.5rem; }
-        .rich-content h2 { font-size: 1.25rem; }
-        .rich-content h3 { font-size: 1.05rem; }
+        .rich-content h1, .rich-content h2, .rich-content h3 { font-weight: 700; line-height: 1.3; }
+        .rich-content h1 { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.6rem; color: #3a1858; margin: 0.8rem 0 0.4rem; padding-bottom: 0.25rem; border-bottom: 2px solid #d8b8e8; text-shadow: 0 0 16px rgba(148,80,180,0.18); }
+        .rich-content h2 { font-family: 'Cinzel', serif; font-size: 1.05rem; letter-spacing: 0.08em; text-transform: uppercase; color: #5a3890; margin: 0.7rem 0 0.35rem; padding-bottom: 0.2rem; border-bottom: 1px solid #e8d8f4; }
+        .rich-content h3 { font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: #7850a0; margin: 0.6rem 0 0.3rem; }
         .rich-content b, .rich-content strong { color: #5a3878; }
         .rich-content em, .rich-content i { color: #7858a0; }
         .rich-content hr { border: none; border-top: 1px solid #e0d0f0; margin: 0.5rem 0; }
